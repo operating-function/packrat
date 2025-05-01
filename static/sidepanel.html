@@ -2,9 +2,23 @@
 <html>
   <head>
     <title>My Sidepanel</title>
+    <style>
+      :root {
+        /* System tokens */
+        --md-sys-color-surface: #ffffff;
+        --md-sys-color-primary: #000000;
+        /* Component tokens */
+        --md-primary-tab-with-icon-and-label-text-container-height: 48px;
+        --md-primary-tab-label-text-font: system-ui, sans-serif;
+      }
+    </style>
+    <script src="./sidepanel.js"></script>
   </head>
   <body>
-    <h1>All sites sidepanel extension</h1>
-    <p>This side panel is enabled on all sites</p>
+    <h1>Searchbar here</h1>
+    <md-tabs>
+      <md-primary-tab>My Archives</md-primary-tab>
+      <md-primary-tab>My Shared Archives</md-primary-tab>
+    </md-tabs>
   </body>
 </html>
