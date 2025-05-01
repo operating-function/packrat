@@ -9,7 +9,8 @@
     "activeTab",
     "storage",
     "unlimitedStorage",
-    "webRequest"
+    "webRequest",
+    "sidePanel"
   ],
   "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
   "background": {
@@ -23,8 +24,10 @@
     "default_icon": {
       "32": "$ICON"
     },
-    "default_title": "Webrecorder ArchiveWeb.page",
-    "default_popup": "popup.html"
+    "default_title": "Webrecorder ArchiveWeb.page"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
   },
   "web_accessible_resources": [
     {

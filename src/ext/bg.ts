@@ -45,6 +45,12 @@ function main() {
     contexts: ["all"],
   });
 }
+// Side panel
+chrome.sidePanel.setPanelBehavior({ 
+  openPanelOnActionClick: true 
+}).catch((err: Error) => {
+  console.error(err);
+});
 
 // @ts-expect-error - TS7006 - Parameter 'port' implicitly has an 'any' type.
 chrome.runtime.onConnect.addListener((port) => {
