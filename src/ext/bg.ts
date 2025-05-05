@@ -162,7 +162,6 @@ function sidepanelHandler(port) {
 
       case "newColl": {
         const { name } = await collLoader.initNewColl({ title: message.title });
-        console.log("newColl", name);
         defaultCollId = name;
         port.postMessage(await listAllMsg(collLoader, { defaultCollId }));
         await setLocalOption("defaultCollId", defaultCollId);

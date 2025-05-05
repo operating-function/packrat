@@ -9,6 +9,11 @@ import fasBox from "@fortawesome/fontawesome-free/svgs/solid/square.svg";
 import wrRec from "./assets/icons/recLogo.svg";
 
 import {
+  getLocalOption,
+  // removeLocalOption,
+  setLocalOption,
+} from "./localstorage";
+import {
   BEHAVIOR_WAIT_LOAD,
   // BEHAVIOR_READY_START,
   // BEHAVIOR_RUNNING,
@@ -28,7 +33,7 @@ class ArgoViewer extends LitElement {
     // @ts-expect-error - TS2339 - Property 'collTitle' does not exist on type 'RecPopup'.
     this.collTitle = "";
     // @ts-expect-error - TS2339 - Property 'collId' does not exist on type 'RecPopup'.
-    this.collId = "default-collection";
+    this.collId = "";
 
     // @ts-expect-error - TS2339 - Property 'tabId' does not exist on type 'RecPopup'.
     this.tabId = 0;
@@ -126,12 +131,6 @@ class ArgoViewer extends LitElement {
       this.onMessage(message);
     });
 
-    this.sendMessage({
-      // @ts-expect-error - TS2339 - Property 'tabId' does not exist on type 'RecPopup'.
-      tabId: this.tabId,
-      type: "newColl",
-      title: "default-collection",
-    });
   }
 
   // @ts-expect-error - TS7006 - Parameter 'message' implicitly has an 'any' type.
@@ -183,6 +182,32 @@ class ArgoViewer extends LitElement {
           this.collTitle = this.findTitleFor(this.collId);
           // @ts-expect-error - TS2339 - Property 'tabId' does not exist on type 'RecPopup'. | TS2339 - Property 'collId' does not exist on type 'RecPopup'.
           await setLocalOption(`${this.tabId}-collId`, this.collId);
+        }
+        break;
+      case "collections":
+        // @ts-expect-error - TS2339 - Property 'collections' does not exist on type 'RecPopup'.
+        this.collections = message.collections;
+        // @ts-expect-error - TS2339 - Property 'collId' does not exist on type 'RecPopup'. | TS2339 - Property 'tabId' does not exist on type 'RecPopup'.
+        this.collId = await getLocalOption(`${this.tabId}-collId`);
+        // @ts-expect-error - TS2339 - Property 'collTitle' does not exist on type 'RecPopup'.
+        this.collTitle = "";
+        // @ts-expect-error - TS2339 - Property 'collId' does not exist on type 'RecPopup'.
+        if (this.collId) {
+          // @ts-expect-error - TS2339 - Property 'collTitle' does not exist on type 'RecPopup'. | TS2339 - Property 'collId' does not exist on type 'RecPopup'.
+          this.collTitle = this.findTitleFor(this.collId);
+        }
+        // may no longer be valid, try default id
+        // @ts-expect-error - TS2339 - Property 'collTitle' does not exist on type 'RecPopup'.
+        if (!this.collTitle) {
+          // @ts-expect-error - TS2339 - Property 'collId' does not exist on type 'RecPopup'.
+          this.collId = message.collId;
+          // @ts-expect-error - TS2339 - Property 'collTitle' does not exist on type 'RecPopup'. | TS2339 - Property 'collId' does not exist on type 'RecPopup'.
+          this.collTitle = this.findTitleFor(this.collId);
+        }
+        // @ts-expect-error - TS2339 - Property 'collTitle' does not exist on type 'RecPopup'.
+        if (!this.collTitle) {
+          // @ts-expect-error - TS2339 - Property 'collTitle' does not exist on type 'RecPopup'.
+          this.collTitle = "[No Title]";
         }
         break;
     }
