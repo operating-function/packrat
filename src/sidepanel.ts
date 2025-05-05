@@ -1,12 +1,12 @@
-
-import '@material/web/all.js';
-import { styles as typescaleStyles } from '@material/web/typography/md-typescale-styles.js';
+import "@material/web/all.js";
+import { styles as typescaleStyles } from "@material/web/typography/md-typescale-styles.js";
 import { LitElement, html } from "lit";
 import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 
 import fasHome from "@fortawesome/fontawesome-free/svgs/solid/home.svg";
 import fasBox from "@fortawesome/fontawesome-free/svgs/solid/square.svg";
 import wrRec from "./assets/icons/recLogo.svg";
+import "./argo-archive-list";
 
 import {
   getLocalOption,
@@ -22,7 +22,6 @@ import {
 } from "./consts";
 
 document.adoptedStyleSheets.push(typescaleStyles.styleSheet!);
-
 
 class ArgoViewer extends LitElement {
   constructor() {
@@ -101,9 +100,45 @@ class ArgoViewer extends LitElement {
   }
 
   firstUpdated() {
-
     this.registerMessages();
   }
+
+  // // @ts-expect-error - TS7006 - Parameter 'pages' implicitly has an 'any' type.
+  // renderArchivedPages(pages) {
+  // 	const listEl = (this.renderRoot as ShadowRoot).getElementById("archived-list");
+  // 	if (!listEl) return;
+
+  // 	listEl.innerHTML = "";
+  // 	// @ts-expect-error - a and b are any
+  // 	pages.sort((a, b) => Number(b.ts || 0) - Number(a.ts || 0)); // newest first
+
+  // 	for (const page of pages) {
+  // 		const li = document.createElement("li");
+  // 		li.textContent = page.title || page.url;
+  // 		li.style.cursor = "pointer";
+  // 		li.onclick = () => {
+  // 			const tsString = page.ts ? new Date(Number(page.ts)).toISOString().replace(/[-:TZ.]/g, "") : "";
+
+  // 			const query = new URLSearchParams({
+  // 				// @ts-expect-error - TS2339 - Property 'collId' does not exist on type 'RecPopup'.
+  // 				source: `local://${this.collId}`,
+  // 				url: page.url,
+  // 			}).toString();
+
+  // 			const hash = new URLSearchParams({
+  // 				view: "pages",
+  // 				url: page.url,
+  // 				ts: tsString,
+  // 			}).toString();
+
+  // 			const fullUrl = `${chrome.runtime.getURL("index.html")}?${query}#${hash}`;
+
+  // 			chrome.tabs.create({ url: fullUrl });
+  // 		};
+  // 		listEl.appendChild(li);
+  // 	}
+  // }
+  //
 
   registerMessages() {
     // @ts-expect-error - TS2339 - Property 'port' does not exist on type 'RecPopup'.
@@ -126,11 +161,12 @@ class ArgoViewer extends LitElement {
       }
     });
 
+    // this.sendMessage({ type: "getPages" });
+
     // @ts-expect-error - TS2339 - Property 'port' does not exist on type 'RecPopup'.
     this.port.onMessage.addListener((message) => {
       this.onMessage(message);
     });
-
   }
 
   // @ts-expect-error - TS7006 - Parameter 'message' implicitly has an 'any' type.
@@ -210,10 +246,13 @@ class ArgoViewer extends LitElement {
           this.collTitle = "[No Title]";
         }
         break;
+      // case "pages":
+      // 	this.renderArchivedPages(message.pages);
+      // 	break;
     }
   }
-  get actionButtonDisabled() {
 
+  get actionButtonDisabled() {
     // @ts-expect-error - TS2339 - Property 'recording' does not exist on type 'RecPopup'. | TS2339 - Property 'waitingForStart' does not exist on type 'RecPopup'. | TS2339 - Property 'waitingForStop' does not exist on type 'RecPopup'.
     return !this.recording ? this.waitingForStart : this.waitingForStop;
   }
@@ -346,6 +385,8 @@ class ArgoViewer extends LitElement {
             `
           : ""
       }
+      <h4>Archived Pages</h4>
+      <ul id="archived-list" style="margin-top: 0.5rem;"></ul>
     </div>`;
   }
 }
@@ -368,18 +409,18 @@ class WrIcon extends LitElement {
     return html`
       <svg
         style="width: ${
-      // @ts-expect-error - TS2339 - Property 'size' does not exist on type 'WrIcon'. | TS2339 - Property 'size' does not exist on type 'WrIcon'.
-      this.size
-      }; height: ${
-      // @ts-expect-error - TS2339 - Property 'size' does not exist on type 'WrIcon'. | TS2339 - Property 'size' does not exist on type 'WrIcon'.
-      this.size
-      }"
+          // @ts-expect-error - TS2339 - Property 'size' does not exist on type 'WrIcon'. | TS2339 - Property 'size' does not exist on type 'WrIcon'.
+          this.size
+        }; height: ${
+          // @ts-expect-error - TS2339 - Property 'size' does not exist on type 'WrIcon'. | TS2339 - Property 'size' does not exist on type 'WrIcon'.
+          this.size
+        }"
       >
         <g>
           ${
-      // @ts-expect-error - TS2339 - Property 'src' does not exist on type 'WrIcon'.
-      unsafeSVG(this.src)
-      }
+            // @ts-expect-error - TS2339 - Property 'src' does not exist on type 'WrIcon'.
+            unsafeSVG(this.src)
+          }
         </g>
       </svg>
     `;

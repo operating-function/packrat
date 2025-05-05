@@ -4,11 +4,7 @@ import { CollectionLoader } from "@webrecorder/wabac/swlib";
 
 import { listAllMsg } from "../utils";
 
-import {
-  getLocalOption,
-  removeLocalOption,
-  setLocalOption,
-} from "../localstorage";
+import { getLocalOption, removeLocalOption, setLocalOption } from "../localstorage";
 
 // ===========================================================================
 self.recorders = {};
@@ -46,11 +42,13 @@ function main() {
   });
 }
 // Side panel
-chrome.sidePanel.setPanelBehavior({ 
-  openPanelOnActionClick: true 
-}).catch((err: Error) => {
-  console.error(err);
-});
+chrome.sidePanel
+  .setPanelBehavior({
+    openPanelOnActionClick: true,
+  })
+  .catch((err: Error) => {
+    console.error(err);
+  });
 
 // @ts-expect-error - TS7006 - Parameter 'port' implicitly has an 'any' type.
 chrome.runtime.onConnect.addListener((port) => {
@@ -142,6 +140,23 @@ function sidepanelHandler(port) {
         }
         port.postMessage(await listAllMsg(collLoader));
         break;
+
+      case "getPages": {
+        const defaultCollId = await getLocalOption("defaultCollId");
+        if (!defaultCollId) {
+          port.postMessage({ type: "pages", pages: [] });
+          return;
+        }
+
+        const coll = await collLoader.loadColl(defaultCollId);
+        if (coll?.store?.getAllPages) {
+          const pages = await coll.store.getAllPages();
+          port.postMessage({ type: "pages", pages });
+        } else {
+          port.postMessage({ type: "pages", pages: [] });
+        }
+        break;
+      }
 
       case "startRecording": {
         const { collId, autorun } = message;
@@ -362,12 +377,7 @@ function isRecording(tabId) {
 // ===========================================================================
 // @ts-expect-error - TS7006 - Parameter 'url' implicitly has an 'any' type.
 function isValidUrl(url) {
-  return (
-    url &&
-    (url === "about:blank" ||
-      url.startsWith("https:") ||
-      url.startsWith("http:"))
-  );
+  return url && (url === "about:blank" || url.startsWith("https:") || url.startsWith("http:"));
 }
 
 // ===========================================================================
