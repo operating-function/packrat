@@ -2,11 +2,9 @@ import "@material/web/all.js";
 import { styles as typescaleStyles } from "@material/web/typography/md-typescale-styles.js";
 import { LitElement, html } from "lit";
 import { unsafeSVG } from "lit/directives/unsafe-svg.js";
-
-import fasHome from "@fortawesome/fontawesome-free/svgs/solid/home.svg";
-import fasBox from "@fortawesome/fontawesome-free/svgs/solid/square.svg";
-import wrRec from "./assets/icons/recLogo.svg";
 import "./argo-archive-list";
+import "@material/web/textfield/outlined-text-field.js";
+import "@material/web/icon/icon.js";
 
 import {
   getLocalOption,
@@ -20,6 +18,10 @@ import {
   // BEHAVIOR_PAUSED,
   // BEHAVIOR_DONE,
 } from "./consts";
+
+import "@material/web/button/filled-button.js";
+import "@material/web/button/outlined-button.js";
+import "@material/web/divider/divider.js";
 
 document.adoptedStyleSheets.push(typescaleStyles.styleSheet!);
 
@@ -102,43 +104,6 @@ class ArgoViewer extends LitElement {
   firstUpdated() {
     this.registerMessages();
   }
-
-  // // @ts-expect-error - TS7006 - Parameter 'pages' implicitly has an 'any' type.
-  // renderArchivedPages(pages) {
-  // 	const listEl = (this.renderRoot as ShadowRoot).getElementById("archived-list");
-  // 	if (!listEl) return;
-
-  // 	listEl.innerHTML = "";
-  // 	// @ts-expect-error - a and b are any
-  // 	pages.sort((a, b) => Number(b.ts || 0) - Number(a.ts || 0)); // newest first
-
-  // 	for (const page of pages) {
-  // 		const li = document.createElement("li");
-  // 		li.textContent = page.title || page.url;
-  // 		li.style.cursor = "pointer";
-  // 		li.onclick = () => {
-  // 			const tsString = page.ts ? new Date(Number(page.ts)).toISOString().replace(/[-:TZ.]/g, "") : "";
-
-  // 			const query = new URLSearchParams({
-  // 				// @ts-expect-error - TS2339 - Property 'collId' does not exist on type 'RecPopup'.
-  // 				source: `local://${this.collId}`,
-  // 				url: page.url,
-  // 			}).toString();
-
-  // 			const hash = new URLSearchParams({
-  // 				view: "pages",
-  // 				url: page.url,
-  // 				ts: tsString,
-  // 			}).toString();
-
-  // 			const fullUrl = `${chrome.runtime.getURL("index.html")}?${query}#${hash}`;
-
-  // 			chrome.tabs.create({ url: fullUrl });
-  // 		};
-  // 		listEl.appendChild(li);
-  // 	}
-  // }
-  //
 
   registerMessages() {
     // @ts-expect-error - TS2339 - Property 'port' does not exist on type 'RecPopup'.
@@ -246,9 +211,6 @@ class ArgoViewer extends LitElement {
           this.collTitle = "[No Title]";
         }
         break;
-      // case "pages":
-      // 	this.renderArchivedPages(message.pages);
-      // 	break;
     }
   }
 
@@ -283,10 +245,7 @@ class ArgoViewer extends LitElement {
       this.replayUrl = this.getCollPage() + "#" + params.toString();
     }
 
-    if (
-      changedProperties.has("pageUrl") ||
-      changedProperties.has("failureMsg")
-    ) {
+    if (changedProperties.has("pageUrl") || changedProperties.has("failureMsg")) {
       // @ts-expect-error - TS2339 - Property 'canRecord' does not exist on type 'RecPopup'.
       this.canRecord =
         // @ts-expect-error - TS2339 - Property 'pageUrl' does not exist on type 'RecPopup'.
@@ -338,56 +297,50 @@ class ArgoViewer extends LitElement {
     this.waitingForStop = true;
   }
   render() {
-    return html`<div>
-      <a
-        target="_blank"
-        href="${this.getHomePage()}"
-        class="smallest button is-small is-inverted"
-      >
-        <span class="icon is-small">
-          <wr-icon
-            size="1.0em"
-            title="Home - All Archives"
-            .src="${fasHome}"
-          ></wr-icon>
-          Home - All Archives
-        </span>
-      </a>
-      ${
-        // @ts-expect-error - TS2339 - Property 'canRecord' does not exist on type 'RecPopup'.
-        this.canRecord
-          ? html`
-              <button
-                autofocus
-                ?disabled=${this.actionButtonDisabled}
-                @click="${
+    return html`
+      <md-divider></md-divider>
+      <div style="padding:1rem; display:flex; align-items:center; justify-content:space-between;">
+        ${
+          // @ts-expect-error - TS2339 - Property 'canRecord' does not exist on type 'RecPopup'.
+          this.canRecord
+            ? html`
+                ${
                   // @ts-expect-error - TS2339 - Property 'recording' does not exist on type 'RecPopup'.
-                  !this.recording ? this.onStart : this.onStop
-                }"
-                class="button"
-              >
-                <span class="icon">
-                  ${
-                    // @ts-expect-error - TS2339 - Property 'recording' does not exist on type 'RecPopup'.
-                    !this.recording
-                      ? html` <wr-icon .src=${wrRec}></wr-icon>`
-                      : html` <wr-icon .src=${fasBox}></wr-icon>`
-                  }
-                </span>
-                <span
-                  >${
-                    // @ts-expect-error - TS2339 - Property 'recording' does not exist on type 'RecPopup'.
+                  !this.recording
+                    ? html`
+                        <md-filled-button
+                          style="
+                  --md-sys-color-primary-container: #7b1fa2;
+                  color: white;
+                  border-radius: 9999px;
+                "
+                          ?disabled=${this.actionButtonDisabled}
+                          @click=${this.onStart}
+                        >
+                          <md-icon slot="icon" style="color:white">public</md-icon>
+                          Resume Archiving
+                        </md-filled-button>
+                      `
+                    : html`
+                        <md-outlined-button
+                          style="--md-sys-color-primary: #b00020; --md-sys-color-outline: #b00020; border-radius: 9999px;"
+                          ?disabled=${this.actionButtonDisabled}
+                          @click=${this.onStop}
+                        >
+                          <md-icon slot="icon" style="color:#b00020">pause</md-icon>
+                          Pause Archiving
+                        </md-outlined-button>
+                      `
+                }
+              `
+            : html`<span></span>`
+        }
 
-                    !this.recording ? "Start Archiving" : "Stop Archiving"
-                  }</span
-                >
-              </button>
-            `
-          : ""
-      }
-      <h4>Archived Pages</h4>
-      <ul id="archived-list" style="margin-top: 0.5rem;"></ul>
-    </div>`;
+        <md-icon-button aria-label="Settings">
+          <md-icon>settings</md-icon>
+        </md-icon-button>
+      </div>
+    `;
   }
 }
 
