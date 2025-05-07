@@ -4,11 +4,7 @@ import { CollectionLoader } from "@webrecorder/wabac/swlib";
 
 import { listAllMsg } from "../utils";
 
-import {
-  getLocalOption,
-  removeLocalOption,
-  setLocalOption,
-} from "../localstorage";
+import { getLocalOption, removeLocalOption, setLocalOption } from "../localstorage";
 
 // ===========================================================================
 self.recorders = {};
@@ -45,12 +41,23 @@ function main() {
     contexts: ["all"],
   });
 }
+// Side panel
+chrome.sidePanel
+  .setPanelBehavior({
+    openPanelOnActionClick: true,
+  })
+  .catch((err: Error) => {
+    console.error(err);
+  });
 
 // @ts-expect-error - TS7006 - Parameter 'port' implicitly has an 'any' type.
 chrome.runtime.onConnect.addListener((port) => {
   switch (port.name) {
     case "popup-port":
       popupHandler(port);
+      break;
+    case "sidepanel-port":
+      sidepanelHandler(port);
       break;
   }
 });
@@ -76,6 +83,80 @@ function popupHandler(port) {
         }
         port.postMessage(await listAllMsg(collLoader));
         break;
+
+      case "startRecording": {
+        const { collId, autorun } = message;
+        // @ts-expect-error - TS2554 - Expected 2 arguments, but got 3.
+        startRecorder(tabId, { collId, port, autorun }, message.url);
+        break;
+      }
+
+      case "stopRecording":
+        // @ts-expect-error - TS7005 - Variable 'tabId' implicitly has an 'any' type.
+        stopRecorder(tabId);
+        break;
+
+      case "toggleBehaviors":
+        // @ts-expect-error - TS7005 - Variable 'tabId' implicitly has an 'any' type.
+        toggleBehaviors(tabId);
+        break;
+
+      case "newColl": {
+        const { name } = await collLoader.initNewColl({ title: message.title });
+        defaultCollId = name;
+        port.postMessage(await listAllMsg(collLoader, { defaultCollId }));
+        await setLocalOption("defaultCollId", defaultCollId);
+        break;
+      }
+    }
+  });
+
+  port.onDisconnect.addListener(() => {
+    // @ts-expect-error - TS2538 - Type 'null' cannot be used as an index type.
+    if (self.recorders[tabId]) {
+      // @ts-expect-error - TS2538 - Type 'null' cannot be used as an index type.
+      self.recorders[tabId].port = null;
+    }
+  });
+}
+// @ts-expect-error - TS7006 - Parameter 'port' implicitly has an 'any' type.
+function sidepanelHandler(port) {
+  if (!port.sender || port.sender.url !== chrome.runtime.getURL("sidepanel.html")) {
+    return;
+  }
+
+  // @ts-expect-error - TS7034 - Variable 'tabId' implicitly has type 'any' in some locations where its type cannot be determined.
+  let tabId = null;
+
+  // @ts-expect-error - TS7006 - Parameter 'message' implicitly has an 'any' type.
+  port.onMessage.addListener(async (message) => {
+    switch (message.type) {
+      case "startUpdates":
+        tabId = message.tabId;
+        if (self.recorders[tabId]) {
+          // @ts-expect-error - TS2339 - Property 'port' does not exist on type 'BrowserRecorder'.
+          self.recorders[tabId].port = port;
+          self.recorders[tabId].doUpdateStatus();
+        }
+        port.postMessage(await listAllMsg(collLoader));
+        break;
+
+      case "getPages": {
+        const defaultCollId = await getLocalOption("defaultCollId");
+        if (!defaultCollId) {
+          port.postMessage({ type: "pages", pages: [] });
+          return;
+        }
+
+        const coll = await collLoader.loadColl(defaultCollId);
+        if (coll?.store?.getAllPages) {
+          const pages = await coll.store.getAllPages();
+          port.postMessage({ type: "pages", pages });
+        } else {
+          port.postMessage({ type: "pages", pages: [] });
+        }
+        break;
+      }
 
       case "startRecording": {
         const { collId, autorun } = message;
@@ -296,12 +377,7 @@ function isRecording(tabId) {
 // ===========================================================================
 // @ts-expect-error - TS7006 - Parameter 'url' implicitly has an 'any' type.
 function isValidUrl(url) {
-  return (
-    url &&
-    (url === "about:blank" ||
-      url.startsWith("https:") ||
-      url.startsWith("http:"))
-  );
+  return url && (url === "about:blank" || url.startsWith("https:") || url.startsWith("http:"));
 }
 
 // ===========================================================================

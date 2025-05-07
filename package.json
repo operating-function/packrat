@@ -11,6 +11,7 @@
   "author": "Webrecorder Software",
   "license": "AGPL-3.0-or-later",
   "dependencies": {
+    "@material/web": "^2.3.0",
     "@fortawesome/fontawesome-free": "^5.13.0",
     "@ipld/car": "^5.3.2",
     "@ipld/unixfs": "^3.0.0",

@@ -227,6 +227,7 @@ const extensionWebConfig = (env, argv) => {
   const entry = {
     bg: "./src/ext/bg.ts",
     popup: "./src/popup.ts",
+    sidepanel: "./src/sidepanel.ts",
   };
 
   return sharedBuild(DIST_EXT, { plugins, copy, entry }, argv);
