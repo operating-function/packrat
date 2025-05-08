@@ -7,7 +7,7 @@ export async function ensureDefaultColl(collLoader) {
   let colls = await collLoader.listAll();
 
   if (!colls.length) {
-    const metadata = { title: "My Archiving Session" };
+    const metadata = { title: "My Archive" };
     const result = await collLoader.initNewColl(metadata);
 
     await setLocalOption("defaultCollId", result.name);
