@@ -125,6 +125,14 @@ export class ArgoArchiveList extends LitElement {
       if (msg.type === "pages") this.pages = msg.pages || [];
     });
     port.postMessage({ type: "getPages" });
+
+    // @ts-expect-error - TS7006 - Parameter 'msg' implicitly has an 'any' type.
+    chrome.runtime.onMessage.addListener((msg) => {
+      if (msg.type === "pageAdded") {
+        // ask the background for a fresh list
+        port.postMessage({ type: "getPages" });
+      }
+    });
   }
 
   render() {
