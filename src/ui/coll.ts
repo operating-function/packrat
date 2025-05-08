@@ -134,30 +134,30 @@ class WrRecColl extends Item {
     }
   }
 
-  protected renderToolbarLeft(isDropdown = false) {
-    const leftBar = super.renderToolbarLeft();
+  // protected renderToolbarLeft(isDropdown = false) {
+  //   const leftBar = super.renderToolbarLeft();
 
-    if (this.embed) {
-      return leftBar;
-    }
+  //   if (this.embed) {
+  //     return leftBar;
+  //   }
 
-    return html`${leftBar}<a
-        href="#"
-        role="button"
-        class="${!isDropdown
-          ? "button narrow is-borderless"
-          : "dropdown-item is-hidden-tablet"}"
-        title="Start Archiving"
-        aria-label="Start Archiving"
-        aria-controls="record"
-        @click="${this.onShowStart}"
-        @keyup="${clickOnSpacebarPress}"
-      >
-        <span class="icon is-small">
-          <fa-icon size="1.2em" aria-hidden="true" .svg="${wrRec}"></fa-icon>
-        </span>
-      </a>`;
-  }
+  //   return html`${leftBar}<a
+  //       href="#"
+  //       role="button"
+  //       class="${!isDropdown
+  //         ? "button narrow is-borderless"
+  //         : "dropdown-item is-hidden-tablet"}"
+  //       title="Start Archiving"
+  //       aria-label="Start Archiving"
+  //       aria-controls="record"
+  //       @click="${this.onShowStart}"
+  //       @keyup="${clickOnSpacebarPress}"
+  //     >
+  //       <span class="icon is-small">
+  //         <fa-icon size="1.2em" aria-hidden="true" .svg="${wrRec}"></fa-icon>
+  //       </span>
+  //     </a>`;
+  // }
 
   protected renderToolbarRight() {
     const rightBar = super.renderToolbarRight();
