@@ -163,43 +163,45 @@ export class ArgoArchiveList extends LitElement {
                     <span class="md-typescale-label-large">${dateLabel}</span>
                   </summary>
                   <md-list>
-                    ${pages.map((page) => {
-                      const u = new URL(page.url);
-                      return html`
-                        <md-list-item type="button" @click=${() => this._openPage(page)}>
-                          <div slot="start" class="leading-group">
-                            <md-checkbox
-                              slot="start"
-                              touch-target="wrapper"
-                              @click=${(e: Event) => e.stopPropagation()}
-                            ></md-checkbox>
+                    ${(pages || [])
+                      .sort((a, b) => Number(b.ts) - Number(a.ts))
+                      .map((page) => {
+                        const u = new URL(page.url);
+                        return html`
+                          <md-list-item type="button" @click=${() => this._openPage(page)}>
+                            <div slot="start" class="leading-group">
+                              <md-checkbox
+                                slot="start"
+                                touch-target="wrapper"
+                                @click=${(e: Event) => e.stopPropagation()}
+                              ></md-checkbox>
 
-                            ${page.favIconUrl
-                              ? html`
-                                  <img
-                                    slot="start"
-                                    class="favicon"
-                                    src=${page.favIconUrl}
-                                    alt="favicon of ${u.hostname}"
-                                  />
-                                `
-                              : html`<md-icon slot="start">article</md-icon>`}
-                          </div>
-                          <div slot="headline" class="title-url">
-                            <span
-                              class="md-typescale-body-small title-text"
-                              style="--md-sys-typescale-body-small-weight: 700"
-                              >${page.title || page.url}</span
-                            >
-                            <a
-                              class="md-typescale-body-small base-url"
-                              style="--md-sys-typescale-body-small-weight: 700; color: gray"
-                              >${u.hostname}</a
-                            >
-                          </div>
-                        </md-list-item>
-                      `;
-                    })}
+                              ${page.favIconUrl
+                                ? html`
+                                    <img
+                                      slot="start"
+                                      class="favicon"
+                                      src=${page.favIconUrl}
+                                      alt="favicon of ${u.hostname}"
+                                    />
+                                  `
+                                : html`<md-icon slot="start">article</md-icon>`}
+                            </div>
+                            <div slot="headline" class="title-url">
+                              <span
+                                class="md-typescale-body-small title-text"
+                                style="--md-sys-typescale-body-small-weight: 700"
+                                >${page.title || page.url}</span
+                              >
+                              <a
+                                class="md-typescale-body-small base-url"
+                                style="--md-sys-typescale-body-small-weight: 700; color: gray"
+                                >${u.hostname}</a
+                              >
+                            </div>
+                          </md-list-item>
+                        `;
+                      })}
                   </md-list>
                 </details>
               </md-elevated-card>
