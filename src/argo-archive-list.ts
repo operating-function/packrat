@@ -163,7 +163,7 @@ export class ArgoArchiveList extends LitElement {
                     <span class="md-typescale-label-large">${dateLabel}</span>
                   </summary>
                   <md-list>
-                    ${pages
+                    ${(pages || [])
                       .sort((a, b) => Number(b.ts) - Number(a.ts))
                       .map((page) => {
                         const u = new URL(page.url);
