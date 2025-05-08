@@ -125,9 +125,7 @@ class BrowserRecorder extends Recorder {
     }
 
     if (numOtherRecorders > 0) {
-      console.log(
-        `closing session, not detaching, ${numOtherRecorders} other recording tab(s) left`,
-      );
+      console.log(`closing session, not detaching, ${numOtherRecorders} other recording tab(s) left`);
       return this.sessionClose([]);
     } else {
       console.log("detaching debugger, already tabs stopped");
@@ -236,9 +234,7 @@ class BrowserRecorder extends Recorder {
       this.doUpdateStatus();
     } catch (msg) {
       // @ts-expect-error - TS2339 - Property 'failureMsg' does not exist on type 'BrowserRecorder'.
-      this.failureMsg = chrome.runtime.lastError
-        ? chrome.runtime.lastError.message
-        : msg;
+      this.failureMsg = chrome.runtime.lastError ? chrome.runtime.lastError.message : msg;
       this.doUpdateStatus();
       throw msg;
     }
@@ -343,7 +339,10 @@ class BrowserRecorder extends Recorder {
     // @ts-expect-error - TS2339 - Property 'db' does not exist on type 'BrowserRecorder'.
     if (this.db) {
       // @ts-expect-error - TS2339 - Property 'db' does not exist on type 'BrowserRecorder'.
-      return this.db.addPage(pageInfo);
+      const result = this.db.addPage(pageInfo);
+
+      chrome.runtime.sendMessage({ type: "pageAdded" });
+      return result;
     }
   }
 
@@ -372,9 +371,7 @@ class BrowserRecorder extends Recorder {
         prr.resolve(res);
       } else {
         // @ts-expect-error - TS7005 - Variable 'prr' implicitly has an 'any' type.
-        prr.reject(
-          chrome.runtime.lastError ? chrome.runtime.lastError.message : "",
-        );
+        prr.reject(chrome.runtime.lastError ? chrome.runtime.lastError.message : "");
       }
     };
 
