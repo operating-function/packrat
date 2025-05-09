@@ -200,7 +200,7 @@ class WrRecCollInfo extends ItemInfo {
                 <fa-icon aria-hidden="true" .svg="${fasUpload}"></fa-icon>
               </span>
             </button>
-            <button
+            <!-- <button
               @click="${this.onShowStart}"
               class="button is-small"
               title="Start Archiving"
@@ -208,7 +208,7 @@ class WrRecCollInfo extends ItemInfo {
               <span class="icon">
                 <fa-icon aria-hidden="true" .svg="${wrRec}"></fa-icon>
               </span>
-            </button>
+            </button> -->
           </div>
         </div>
 
