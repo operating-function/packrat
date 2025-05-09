@@ -19,79 +19,16 @@
         --md-sys-color-background: white;
         --md-sys-color-surface-container: white;
         --md-elevated-card-container-color: white;
-      }
-
-      md-tabs {
-          background-color: white;
-      }
-
-      .search-container {
-        margin: 16px 12px;  
-        height: 32px;
-        background: #ece7f8;
-        border-radius: 9999px;
-        display: flex;
-        align-items: center;
-        overflow: hidden;
-      }
-
-      .search-field {
-        width: 100%;
-        --md-filled-text-field-container-color: transparent;
-        --md-ref-shape-corner-radius: 9999px;
-        overflow: hidden; 
-      }
-
-
-      .search-field::part(container),
-      .search-field::part(hover-overlay),
-      .search-field::part(focus-overlay) {
-        border-radius: 9999px;
-      }
-
-      .search-field::part(input-area) {
-        padding: 0;
-      }
-
-      .search-field md-icon,
-      .search-field input::placeholder {
-        color: #6b6b6b;
+        
       }
 
     </style>
     <script src="./sidepanel.js"></script>
   </head>
   <body style="margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden;">
-    <div class="search-container">
-      <md-filled-text-field
-        type="search"
-        placeholder="Search archived pages"
-        aria-label="Search archived pages"
-        class="search-field"
-      >
-        <md-icon slot="leading-icon">search</md-icon>
-      </md-filled-text-field>
-    </div>
-    
-    
-    
-    <md-tabs id="tabs" aria-label="Archive tabs">
-      <md-primary-tab class="md-typescale-label-large">My Archives</md-primary-tab>
-      <md-primary-tab class="md-typescale-label-large">My Shared Archives</md-primary-tab>
-    </md-tabs>
-
-    <div class="tab-panels" style="flex: 1; overflow-y: auto; position: relative; padding-bottom: 90px;">
-      <div id="my-archives" class="tab-panel" active>
-        <argo-archive-list></argo-archive-list>
-      </div>
-      <div id="shared-archives" class="tab-panel">
-        <!-- future “shared” list… -->
-      </div>
-    </div>
-
     <argo-viewer style="
-      position: sticky;
-      bottom: 0;
+      position: relative;
+      height: 100%;
       z-index: 10;
       background: white;
     "></argo-viewer>
