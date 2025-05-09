@@ -149,9 +149,9 @@ class ArchiveWebApp extends ReplayWebApp {
     }
   }
 
-  get appName() {
-    return "ArchiveWeb.page";
-  }
+  // get appName() {
+  //   return "ArchiveWeb.page";
+  // }
 
   static get properties() {
     return {
@@ -442,14 +442,14 @@ class ArchiveWebApp extends ReplayWebApp {
   }
 
   renderNavEnd() {
-    return html`<a
+    return html` <!-- <a
         href="https://archiveweb.page/guide"
         target="_blank"
         class="navbar-item is-size-6"
       >
         <fa-icon .svg="${fasHelp}" aria-hidden="true"></fa-icon
         ><span>&nbsp;User Guide</span>
-      </a>
+      </a> -->
       <a
         href="?about"
         @click="${
@@ -464,15 +464,15 @@ class ArchiveWebApp extends ReplayWebApp {
       </a>`;
   }
 
-  renderNavBrand() {
-    return html` <fa-icon
-      .svg="${awpBrandLockupColor}"
-      size=""
-      width="9.5rem"
-      height="1.25rem"
-      aria-hidden="true"
-    ></fa-icon>`;
-  }
+  // renderNavBrand() {
+  //   return html` <fa-icon
+  //     .svg="${awpBrandLockupColor}"
+  //     size=""
+  //     width="9.5rem"
+  //     height="1.25rem"
+  //     aria-hidden="true"
+  //   ></fa-icon>`;
+  // }
 
   renderHomeIndex() {
     return html`
@@ -503,7 +503,7 @@ class ArchiveWebApp extends ReplayWebApp {
                 </span>
                 <span class="is-hidden-mobile">Import File</span>
               </button>
-              <button
+              <!-- <button
                 class="button is-small no-pad-mobile"
                 title="Start Archiving"
                 ?disabled="${!this.colls}"
@@ -531,7 +531,7 @@ class ArchiveWebApp extends ReplayWebApp {
                   }"
                 >
                   <fa-icon .svg=${fasCog}></fa-icon>
-                </button>
+                </button> -->
               </div>
             </div>
           </div>
@@ -939,80 +939,80 @@ class ArchiveWebApp extends ReplayWebApp {
     return "Extension";
   }
 
-  renderAbout() {
-    return html`
-      <div class="modal is-active">
-        <div class="modal-background" @click="${this.onAboutClose}"></div>
-          <div class="modal-card">
-            <header class="modal-card-head">
-              <p class="modal-card-title">About ArchiveWeb.page ${this.getDeployType()}</p>
-              <button class="delete" aria-label="close" @click="${
-                this.onAboutClose
-              }"></button>
-            </header>
-            <section class="modal-card-body">
-              <div class="container">
-                <div class="content">
-                  <div class="is-flex">
-                    <div class="has-text-centered" style="width: 220px">
-                      <fa-icon class="logo" size="48px" .svg="${awpLogo}"></fa-icon>
-                      <div style="font-size: smaller; margin-bottom: 1em">${this.getDeployType()} v${VERSION}</div>
-                    </div>
+  // renderAbout() {
+  //   return html`
+  //     <div class="modal is-active">
+  //       <div class="modal-background" @click="${this.onAboutClose}"></div>
+  //         <div class="modal-card">
+  //           <header class="modal-card-head">
+  //             <p class="modal-card-title">About ArchiveWeb.page ${this.getDeployType()}</p>
+  //             <button class="delete" aria-label="close" @click="${
+  //               this.onAboutClose
+  //             }"></button>
+  //           </header>
+  //           <section class="modal-card-body">
+  //             <div class="container">
+  //               <div class="content">
+  //                 <div class="is-flex">
+  //                   <div class="has-text-centered" style="width: 220px">
+  //                     <fa-icon class="logo" size="48px" .svg="${awpLogo}"></fa-icon>
+  //                     <div style="font-size: smaller; margin-bottom: 1em">${this.getDeployType()} v${VERSION}</div>
+  //                   </div>
 
-                    ${
-                      IS_APP
-                        ? html`
-                            <p>
-                              ArchiveWeb.page App is a standalone app for Mac,
-                              Windows and Linux that allows users to archive
-                              webpages as they browse
-                            </p>
-                          `
-                        : html` <p>
-                            ArchiveWeb.page allows users to archive webpages
-                            directly in your browser!
-                          </p>`
-                    }
-                  </div>
+  //                   ${
+  //                     IS_APP
+  //                       ? html`
+  //                           <p>
+  //                             ArchiveWeb.page App is a standalone app for Mac,
+  //                             Windows and Linux that allows users to archive
+  //                             webpages as they browse
+  //                           </p>
+  //                         `
+  //                       : html` <p>
+  //                           ArchiveWeb.page allows users to archive webpages
+  //                           directly in your browser!
+  //                         </p>`
+  //                   }
+  //                 </div>
 
-                  <p>See the <a href="https://archiveweb.page/guide" target="_blank">ArchiveWeb.page Guide</a> for more info on how to use this tool.</p>
+  //                 <p>See the <a href="https://archiveweb.page/guide" target="_blank">ArchiveWeb.page Guide</a> for more info on how to use this tool.</p>
 
-                  <p>Full source code is available at:
-                    <a href="https://github.com/webrecorder/archiveweb.page" target="_blank">https://github.com/webrecorder/archiveweb.page</a>
-                  </p>
+  //                 <p>Full source code is available at:
+  //                   <a href="https://github.com/webrecorder/archiveweb.page" target="_blank">https://github.com/webrecorder/archiveweb.page</a>
+  //                 </p>
 
-                  <p>ArchiveWeb.page is part of the <a href="https://webrecorder.net/" target="_blank">Webrecorder Project</a>.</p>
+  //                 <p>ArchiveWeb.page is part of the <a href="https://webrecorder.net/" target="_blank">Webrecorder Project</a>.</p>
 
-                  <h3>Privacy Policy</h3>
-                  <p class="is-size-7">ArchiveWeb.page allows users to archive what they browse, storing captured data directly in the browser.
-                  Users can downloaded this data as files to their hard drive. Users can also delete any and all archived data at any time.
-                  ArchiveWeb.page does not collect any usage or tracking data.</p>
+  //                 <h3>Privacy Policy</h3>
+  //                 <p class="is-size-7">ArchiveWeb.page allows users to archive what they browse, storing captured data directly in the browser.
+  //                 Users can downloaded this data as files to their hard drive. Users can also delete any and all archived data at any time.
+  //                 ArchiveWeb.page does not collect any usage or tracking data.</p>
 
-                  <p class="is-size-7">ArchiveWeb.page includes an experimental sharing option for each archive collection. Users can choose to share select archives on a peer-to-peer network (IPFS) via a unique id.
-                  Once shared on this network, the data may become accessible to others.
-                  All archived items are private and not shared by default, unless explicitly opted-in by the user. (A warning is displayed when sharing via IPFS.)</p>
+  //                 <p class="is-size-7">ArchiveWeb.page includes an experimental sharing option for each archive collection. Users can choose to share select archives on a peer-to-peer network (IPFS) via a unique id.
+  //                 Once shared on this network, the data may become accessible to others.
+  //                 All archived items are private and not shared by default, unless explicitly opted-in by the user. (A warning is displayed when sharing via IPFS.)</p>
 
-                  <h4>Disclaimer of Warranties</h4>
-                  <p class="is-size-7">The application is provided "as is" without any guarantees.</p>
-                  <details class="is-size-7">
-                    <summary>Legalese:</summary>
-                    <p style="font-size: 0.8rem">DISCLAIMER OF SOFTWARE WARRANTY. WEBRECORDER SOFTWARE PROVIDES THIS SOFTWARE TO YOU "AS AVAILABLE"
-                    AND WITHOUT WARRANTY OF ANY KIND, EXPRESS, IMPLIED OR OTHERWISE,
-                    INCLUDING WITHOUT LIMITATION ANY WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.</p>
-                  </details>
+  //                 <h4>Disclaimer of Warranties</h4>
+  //                 <p class="is-size-7">The application is provided "as is" without any guarantees.</p>
+  //                 <details class="is-size-7">
+  //                   <summary>Legalese:</summary>
+  //                   <p style="font-size: 0.8rem">DISCLAIMER OF SOFTWARE WARRANTY. WEBRECORDER SOFTWARE PROVIDES THIS SOFTWARE TO YOU "AS AVAILABLE"
+  //                   AND WITHOUT WARRANTY OF ANY KIND, EXPRESS, IMPLIED OR OTHERWISE,
+  //                   INCLUDING WITHOUT LIMITATION ANY WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.</p>
+  //                 </details>
 
-                  <div class="has-text-centered">
-                    <a class="button is-warning" href="#" @click="${
-                      this.onAboutClose
-                    }">Close</a>
-                  </div>
-                </div>
-              </div>
-            </section>
-          </div>
-        </div>
-      </div>`;
-  }
+  //                 <div class="has-text-centered">
+  //                   <a class="button is-warning" href="#" @click="${
+  //                     this.onAboutClose
+  //                   }">Close</a>
+  //                 </div>
+  //               </div>
+  //             </div>
+  //           </section>
+  //         </div>
+  //       </div>
+  //     </div>`;
+  // }
 
   renderSettingsModal() {
     return html`
@@ -1043,9 +1043,7 @@ class ArchiveWebApp extends ReplayWebApp {
         >
           ${this.settingsTab === "prefs"
             ? html`<fieldset>
-                <div class="is-size-6 mt-4">
-                  Optional archiving features:
-                </div>
+                <div class="is-size-6 mt-4">Optional archiving features:</div>
                 <div class="field is-size-6 mt-4">
                   <input
                     name="prefArchiveScreenshots"
@@ -1055,7 +1053,8 @@ class ArchiveWebApp extends ReplayWebApp {
                     ?checked="${this.archiveScreenshots}"
                   /><span class="ml-1">Save Screenshots</span>
                   <p class="is-size-7 mt-1">
-                    Save screenshot + thumbnail of every page on load. Screenshot will be saved as soon as page is done loading.
+                    Save screenshot + thumbnail of every page on load.
+                    Screenshot will be saved as soon as page is done loading.
                   </p>
                 </div>
                 <div class="field is-size-6 mt-4">
@@ -1084,10 +1083,8 @@ class ArchiveWebApp extends ReplayWebApp {
                     enable only when archiving websites that contain Flash.
                   </p>
                 </div>
-                <hr/>
-                <div class="is-size-6">
-                  Privacy related settings:
-                </div>
+                <hr />
+                <div class="is-size-6">Privacy related settings:</div>
                 <div class="field is-size-6 mt-4">
                   <input
                     name="prefArchiveCookies"
