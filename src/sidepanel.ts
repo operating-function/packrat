@@ -301,39 +301,32 @@ class ArgoViewer extends LitElement {
       <md-divider></md-divider>
       <div style="padding:1rem; display:flex; align-items:center; justify-content:space-between;">
         ${
-          // @ts-expect-error - TS2339 - Property 'canRecord' does not exist on type 'RecPopup'.
-          this.canRecord
+          // @ts-expect-error - TS2339 - Property 'recording' does not exist on type 'RecPopup'.
+          !this.recording
             ? html`
-                ${
-                  // @ts-expect-error - TS2339 - Property 'recording' does not exist on type 'RecPopup'.
-                  !this.recording
-                    ? html`
-                        <md-filled-button
-                          style="
+                <md-filled-button
+                  style="
                   --md-sys-color-primary-container: #7b1fa2;
                   color: white;
                   border-radius: 9999px;
                 "
-                          ?disabled=${this.actionButtonDisabled}
-                          @click=${this.onStart}
-                        >
-                          <md-icon slot="icon" style="color:white">public</md-icon>
-                          Resume Archiving
-                        </md-filled-button>
-                      `
-                    : html`
-                        <md-outlined-button
-                          style="--md-sys-color-primary: #b00020; --md-sys-color-outline: #b00020; border-radius: 9999px;"
-                          ?disabled=${this.actionButtonDisabled}
-                          @click=${this.onStop}
-                        >
-                          <md-icon slot="icon" style="color:#b00020">pause</md-icon>
-                          Pause Archiving
-                        </md-outlined-button>
-                      `
-                }
+                  ?disabled=${this.actionButtonDisabled}
+                  @click=${this.onStart}
+                >
+                  <md-icon slot="icon" style="color:white">public</md-icon>
+                  Resume Archiving
+                </md-filled-button>
               `
-            : html`<span></span>`
+            : html`
+                <md-outlined-button
+                  style="--md-sys-color-primary: #b00020; --md-sys-color-outline: #b00020; border-radius: 9999px;"
+                  ?disabled=${this.actionButtonDisabled}
+                  @click=${this.onStop}
+                >
+                  <md-icon slot="icon" style="color:#b00020">pause</md-icon>
+                  Pause Archiving
+                </md-outlined-button>
+              `
         }
 
         <md-icon-button aria-label="Settings">

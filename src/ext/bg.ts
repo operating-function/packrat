@@ -18,6 +18,7 @@ let newRecCollId = null;
 // @ts-expect-error - TS7034 - Variable 'defaultCollId' implicitly has type 'any' in some locations where its type cannot be determined.
 let defaultCollId = null;
 let autorun = false;
+let isRecordingEnabled = false;
 
 const openWinMap = new Map();
 
@@ -159,16 +160,49 @@ function sidepanelHandler(port) {
       }
 
       case "startRecording": {
-        const { collId, autorun } = message;
-        // @ts-expect-error - TS2554 - Expected 2 arguments, but got 3.
-        startRecorder(tabId, { collId, port, autorun }, message.url);
+        isRecordingEnabled = true;
+        defaultCollId = message.collId;
+        autorun = message.autorun;
+
+        // @ts-expect-error - tabs doesn't have type definitions
+        chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
+          for (const tab of tabs) {
+            if (!isValidUrl(tab.url)) continue;
+
+            // @ts-expect-error - TS2554 - Expected 2 arguments, but got 3.
+            await startRecorder(tab.id, { collId: defaultCollId, port: null, autorun }, tab.url);
+          }
+
+          port.postMessage({
+            type: "status",
+            recording: true,
+            autorun,
+            // @ts-expect-error - defaultCollId implicitly has an 'any' type.
+            collId: defaultCollId,
+          });
+        });
+
         break;
       }
 
-      case "stopRecording":
-        // @ts-expect-error - TS7005 - Variable 'tabId' implicitly has an 'any' type.
-        stopRecorder(tabId);
+      case "stopRecording": {
+        isRecordingEnabled = false;
+
+        for (const [tabIdStr, rec] of Object.entries(self.recorders)) {
+          const tabId = parseInt(tabIdStr);
+          stopRecorder(tabId);
+        }
+
+        port.postMessage({
+          type: "status",
+          recording: false,
+          autorun,
+          // @ts-expect-error - defaultCollId implicitly has an 'any' type.
+          collId: defaultCollId,
+        });
+
         break;
+      }
 
       case "toggleBehaviors":
         // @ts-expect-error - TS7005 - Variable 'tabId' implicitly has an 'any' type.
@@ -200,6 +234,21 @@ chrome.debugger.onDetach.addListener((tab, reason) => {
   // target closed, delete recorder as this tab will not be used again
   if (reason === "target_closed") {
     delete self.recorders[tab.id];
+  }
+});
+
+// @ts-expect-error - TS7006 - Parameter 'tab' implicitly has an 'any' type.
+chrome.tabs.onActivated.addListener(async ({ tabId }) => {
+  if (!isRecordingEnabled) return;
+
+  // @ts-expect-error - chrome doesn't have type definitions
+  const tab = await new Promise<chrome.tabs.Tab>((resolve) => chrome.tabs.get(tabId, resolve));
+
+  if (!isValidUrl(tab.url)) return;
+
+  if (!self.recorders[tabId]) {
+    // @ts-expect-error - TS2554 - Expected 2 arguments, but got 3.
+    startRecorder(tabId, { collId: defaultCollId, port: null, autorun }, tab.url);
   }
 });
 
@@ -278,14 +327,20 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
         return;
       }
     }
-  } else if (changeInfo.url && openWinMap.has(changeInfo.url)) {
-    const collId = openWinMap.get(changeInfo.url);
-    openWinMap.delete(changeInfo.url);
-    if (!tabId || !isValidUrl(changeInfo.url)) {
+  } else if (changeInfo.url) {
+    if (isRecordingEnabled && isValidUrl(changeInfo.url) && !self.recorders[tabId]) {
+      // @ts-expect-error - TS2554 - Expected 2 arguments, but got 3.
+      startRecorder(tabId, { collId: defaultCollId, autorun }, changeInfo.url);
       return;
     }
-    // @ts-expect-error - TS2554 - Expected 2 arguments, but got 3.
-    startRecorder(tabId, { collId, autorun }, changeInfo.url);
+    if (openWinMap.has(changeInfo.url)) {
+      const collId = openWinMap.get(changeInfo.url);
+      openWinMap.delete(changeInfo.url);
+      if (!tabId || !isValidUrl(changeInfo.url)) return;
+
+      // @ts-expect-error - TS2554 - Expected 2 arguments, but got 3.
+      startRecorder(tabId, { collId, autorun }, changeInfo.url);
+    }
   }
 });
 
