@@ -218,7 +218,16 @@ class ArgoViewer extends LitElement {
       const magnetURI = torrent.magnetURI;
       console.log("Seeding WACZ file via WebTorrent:", magnetURI);
 
-      alert(`Magnet Link Ready:\n${magnetURI}`);
+      // Copy to clipboard
+      navigator.clipboard
+        .writeText(magnetURI)
+        .then(() => {
+          alert(`Magnet link copied to clipboard:\n${magnetURI}`);
+        })
+        .catch((err) => {
+          console.error("Failed to copy magnet link:", err);
+          alert(`Magnet Link Ready:\n${magnetURI}`);
+        });
     });
   }
 
