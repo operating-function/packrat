@@ -20,6 +20,7 @@
         --md-sys-color-surface-container: white;
         --md-elevated-card-container-color: white;
         
+        --md-linear-progress-track-height: 8px;
       }
 
     </style>
@@ -28,9 +29,11 @@
   <body style="margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden;">
     <argo-viewer style="
       position: relative;
-      height: 100%;
+      height: 100dvh;
       z-index: 10;
       background: white;
+      display: flex;
+      flex-direction: column;
     "></argo-viewer>
   </body>
 </html>

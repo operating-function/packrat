@@ -25,6 +25,7 @@ import {
 import "@material/web/button/filled-button.js";
 import "@material/web/button/outlined-button.js";
 import "@material/web/divider/divider.js";
+import { mapIntegerToRange, truncateString } from "./utils";
 
 document.adoptedStyleSheets.push(typescaleStyles.styleSheet!);
 
@@ -85,6 +86,42 @@ class ArgoViewer extends LitElement {
         background: transparent !important;
         padding: 0.75rem 1rem;
       }
+      .status-current-page {
+        display: flex;
+        flex-direction: column;
+        align-items: start;
+        justify-content: space-between;
+      }
+
+      .status-title {
+        font-size: 12px;
+        font-weight: 500;
+        color: #6b6b6b;
+        margin-bottom: 4px;
+      }
+
+      .status-ready {
+        font-size: 11px;
+        font-weight: 500;
+        color: #6b6b6b;
+        margin-bottom: 4px;
+      }
+
+      .status-page-title {
+        font-size: 14px;
+        font-weight: 500;
+        color: #000;
+        margin-bottom: 8px;
+      }
+
+      img.favicon {
+        width: 20px !important;
+        height: 20px !important;
+        flex: 0 0 auto;
+        object-fit: cover;
+        border-radius: 4px;
+        filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.6));
+      }
     `
   ];
 
@@ -108,6 +145,10 @@ class ArgoViewer extends LitElement {
     // @ts-expect-error - TS2339 - Property 'port' does not exist on type 'ArgoViewer'.
     this.port = null;
 
+    // @ts-expect-error - TS2339 - Property 'favIconUrl' does not exist on type 'ArgoViewer'.
+    this.favIconUrl = "";
+    // @ts-expect-error - TS2339 - Property 'pageTitle' does not exist on type 'ArgoViewer'.
+    this.pageTitle = "";
     // @ts-expect-error - TS2339 - Property 'pageUrl' does not exist on type 'ArgoViewer'.
     this.pageUrl = "";
     // @ts-expect-error - TS2339 - Property 'pageTs' does not exist on type 'ArgoViewer'.
@@ -150,6 +191,7 @@ class ArgoViewer extends LitElement {
       waitingForStart: { type: Boolean },
 
       replayUrl: { type: String },
+      pageTitle: { type: String },
       pageUrl: { type: String },
       pageTs: { type: Number },
 
@@ -183,9 +225,7 @@ class ArgoViewer extends LitElement {
     this.registerMessages();
   }
 
-  registerMessages() {
-    // @ts-expect-error - TS2339 - Property 'port' does not exist on type 'ArgoViewer'.
-    this.port = chrome.runtime.connect({ name: "sidepanel-port" });
+  updateTabInfo() {
     // @ts-expect-error - TS7006 - Parameter 'tabs' implicitly has an 'any' type.
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs.length) {
@@ -198,13 +238,17 @@ class ArgoViewer extends LitElement {
           // @ts-expect-error - TS2339 - Property 'recording' does not exist on type 'ArgoViewer'.
           this.recording = result.indexOf("Recording:") >= 0;
         });
-
         // @ts-expect-error - TS2339 - Property 'tabId' does not exist on type 'ArgoViewer'.
         this.sendMessage({ tabId: this.tabId, type: "startUpdates" });
       }
     });
+  }
 
-    // this.sendMessage({ type: "getPages" });
+  registerMessages() {
+    // @ts-expect-error - TS2339 - Property 'port' does not exist on type 'ArgoViewer'.
+    this.port = chrome.runtime.connect({ name: "sidepanel-port" });
+
+    this.updateTabInfo();
 
     // @ts-expect-error - TS2339 - Property 'port' does not exist on type 'ArgoViewer'.
     this.port.onMessage.addListener((message) => {
@@ -220,7 +264,14 @@ class ArgoViewer extends LitElement {
   // @ts-expect-error - TS7006 - Parameter 'message' implicitly has an 'any' type.
   async onMessage(message) {
     switch (message.type) {
+      case "update":
+        this.updateTabInfo();
+        break;
       case "status":
+        // @ts-expect-error - TS2339 - Property 'tabId' does not exist on type 'ArgoViewer'.
+        if (this.tabId !== message.tabId) {
+          return;
+        }
         // @ts-expect-error - TS2339 - Property 'recording' does not exist on type 'ArgoViewer'.
         this.recording = message.recording;
         // @ts-expect-error - TS2339 - Property 'waitingForStart' does not exist on type 'ArgoViewer'.
@@ -243,6 +294,15 @@ class ArgoViewer extends LitElement {
         this.behaviorResults = message.behaviorData?.state;
         // @ts-expect-error - TS2339 - Property 'autorun' does not exist on type 'ArgoViewer'.
         this.autorun = message.autorun;
+
+        if (message.favIconUrl) {
+          // @ts-expect-error - TS2339 - Property 'favIconUrl' does not exist on type 'ArgoViewer'.
+          this.favIconUrl = message.favIconUrl;
+        }
+        if (message.pageTitle) {
+          // @ts-expect-error - TS2339 - Property 'pageTitle' does not exist on type 'ArgoViewer'.
+          this.pageTitle = message.pageTitle;
+        }
         if (message.pageUrl) {
           // @ts-expect-error - TS2339 - Property 'pageUrl' does not exist on type 'ArgoViewer'.
           this.pageUrl = message.pageUrl;
@@ -406,37 +466,59 @@ class ArgoViewer extends LitElement {
 
     // @ts-expect-error - TS2339 - Property 'recording' does not exist on type 'ArgoViewer'.
     if (this.recording) {
-      return html`<b
-          >${
-            // @ts-expect-error - TS2339 - Property 'waitingForStop' does not exist on type 'ArgoViewer'.
-            this.waitingForStop ? "Finishing " : ""
-          }
-          Archiving:&nbsp;</b
-        >${
+      return html`<div class="status-current-page">
+        <span class="status-title">Current page</span>
+        ${
+          // @ts-expect-error - TS2339 - Property 'favIconUrl' does not exist on type 'ArgoViewer'.
+          this.favIconUrl ||
+          // @ts-expect-error - TS2339 - Property 'pageUrl' does not exist on type 'ArgoViewer'.
+          this.pageTitle ? html`
+        <div style="display: flex; align-items: start; gap: 0.5rem;">
+        <img src="${
+          // @ts-expect-error - TS2339 - Property 'favIconUrl' does not exist on type 'ArgoViewer'.
+          this.favIconUrl
+        }" alt="Favicon" class="favicon">
+          <span class="status-page-title">${
+            //@ts-expect-error - TS2339 - Property 'pageTitle' does not exist on type 'ArgoViewer'.
+            truncateString(this.pageTitle)
+          }</span>
+        </div>
+        ` : ""
+        }
+        <span class="status-title">Status</span>
+        ${
+          // @ts-expect-error - TS2339 - Property 'status' does not exist on type 'ArgoViewer'.
+          this.status?.numPending ? html`
+        <md-linear-progress
+          title=${`${
+                // @ts-expect-error - TS2339 - Property 'status' does not exist on type 'RecPopup'.
+                this.status.numPending
+              } URLs pending${
+                // @ts-expect-error - TS2339 - Property 'waitingForStop' does not exist on type 'RecPopup'.
+                this.waitingForStop
+                  ? "."
+                  : ", please wait before loading a new page."
+              }
+          `}
+          value=${mapIntegerToRange(
+            // @ts-expect-error - TS2339 - Property 'status' does not exist on type 'ArgoViewer'.
+            this.status?.numPending || 0
+          )}
+          style="--md-sys-color-primary: #7b1fa2; width: 100%; margin-bottom: 0.5rem;"
+        ></md-linear-progress>
+        ` : ""
+        }
+        ${
           // @ts-expect-error - TS2339 - Property 'status' does not exist on type 'ArgoViewer'. | TS2339 - Property 'status' does not exist on type 'ArgoViewer'.
-          this.status?.numPending
-            ? html`
-                <span class="status-pending"
-                  >${
-                    // @ts-expect-error - TS2339 - Property 'status' does not exist on type 'ArgoViewer'.
-                    this.status.numPending
-                  }
-                  URLs
-                  pending${
-                    // @ts-expect-error - TS2339 - Property 'waitingForStop' does not exist on type 'ArgoViewer'.
-                    this.waitingForStop
-                      ? "."
-                      : ", please wait before loading a new page."
-                  }</span
-                >
-              `
-            : html` <span class="status-ready">Idle, Continue Browsing</span>`
-        }`;
+          !this.status?.numPending
+            ? html`<span class="status-ready">All resources archived</span>` : ""
+        }</div>`;
     }
 
     // @ts-expect-error - TS2339 - Property 'failureMsg' does not exist on type 'ArgoViewer'.
     if (this.failureMsg) {
       return html`
+        <span class="status-title">Status</span>
         <div class="error">
           <p>
             Sorry, there was an error starting archiving on this page. Please
@@ -469,6 +551,7 @@ class ArgoViewer extends LitElement {
       // @ts-expect-error - TS2339 - Property 'pageUrl' does not exist on type 'ArgoViewer'. | TS2339 - Property 'pageUrl' does not exist on type 'ArgoViewer'.
       if (this.pageUrl?.startsWith(this.extRoot)) {
         return html`
+          <span class="status-title">Status</span>
           <p class="is-size-7">
             This page is part of the extension. You can view existing archived
             items from here. To start a new archiving session, click the
@@ -478,15 +561,24 @@ class ArgoViewer extends LitElement {
         `;
       }
 
-      return html`<i>Can't archive this page.</i>`;
+      return html`
+        <span class="status-title">Status</span>
+        <br/>
+        <p>Can't archive this page.</p>`;
     }
 
     // @ts-expect-error - TS2339 - Property 'waitingForStart' does not exist on type 'ArgoViewer'.
     if (this.waitingForStart) {
-      return html`<i>Archiving will start after the page reloads...</i>`;
+      return html`
+        <span class="status-title">Status</span>
+        <br/>
+        <p>Archiving will start after the page reloads...</p>`;
     }
 
-    return html`<i>${this.notRecordingMessage}</i>`;
+    return html`
+        <span class="status-title">Status</span>
+        <br/>
+        <p>${this.notRecordingMessage}</p>`;
   }
 
   renderSearch() {
@@ -511,7 +603,7 @@ class ArgoViewer extends LitElement {
         <md-primary-tab class="md-typescale-label-large">My Shared Archives</md-primary-tab>
       </md-tabs>
 
-      <div class="tab-panels" style="flex: 1; overflow-y: auto; position: relative; padding-bottom: 90px;">
+      <div class="tab-panels" style="flex: 1; overflow-y: auto; position: relative; flex-grow: 1;">
         <div id="my-archives" class="tab-panel" active>
           <argo-archive-list></argo-archive-list>
         </div>
@@ -527,7 +619,7 @@ class ArgoViewer extends LitElement {
       ${this.renderSearch()}
       ${this.renderStatusCard()}
       ${this.renderTabs()}
-      <div style="position: fixed; bottom: 0; width: 100%;">
+      <div style="height: 72px; width: 100%;">
         <md-divider></md-divider>
         <div style="padding:1rem; display:flex; align-items:center; justify-content:space-between; ">
           ${

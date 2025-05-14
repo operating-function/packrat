@@ -26,6 +26,9 @@ const collLoader = new CollectionLoader();
 
 const disabledCSPTabs = new Set();
 
+// @ts-expect-error - TS7034 - Variable 'sidepanelPort' implicitly has type 'any' in some locations where its type cannot be determined.
+let sidepanelPort = null;
+
 // ===========================================================================
 
 function main() {
@@ -54,72 +57,13 @@ chrome.sidePanel
 // @ts-expect-error - TS7006 - Parameter 'port' implicitly has an 'any' type.
 chrome.runtime.onConnect.addListener((port) => {
   switch (port.name) {
-    case "popup-port":
-      popupHandler(port);
-      break;
     case "sidepanel-port":
       sidepanelHandler(port);
       break;
   }
 });
 
-// @ts-expect-error - TS7006 - Parameter 'port' implicitly has an 'any' type.
-function popupHandler(port) {
-  if (!port.sender || port.sender.url !== chrome.runtime.getURL("popup.html")) {
-    return;
-  }
 
-  // @ts-expect-error - TS7034 - Variable 'tabId' implicitly has type 'any' in some locations where its type cannot be determined.
-  let tabId = null;
-
-  // @ts-expect-error - TS7006 - Parameter 'message' implicitly has an 'any' type.
-  port.onMessage.addListener(async (message) => {
-    switch (message.type) {
-      case "startUpdates":
-        tabId = message.tabId;
-        if (self.recorders[tabId]) {
-          // @ts-expect-error - TS2339 - Property 'port' does not exist on type 'BrowserRecorder'.
-          self.recorders[tabId].port = port;
-          self.recorders[tabId].doUpdateStatus();
-        }
-        port.postMessage(await listAllMsg(collLoader));
-        break;
-
-      case "startRecording": {
-        const { collId, autorun } = message;
-        // @ts-expect-error - TS2554 - Expected 2 arguments, but got 3.
-        startRecorder(tabId, { collId, port, autorun }, message.url);
-        break;
-      }
-
-      case "stopRecording":
-        // @ts-expect-error - TS7005 - Variable 'tabId' implicitly has an 'any' type.
-        stopRecorder(tabId);
-        break;
-
-      case "toggleBehaviors":
-        // @ts-expect-error - TS7005 - Variable 'tabId' implicitly has an 'any' type.
-        toggleBehaviors(tabId);
-        break;
-
-      case "newColl": {
-        const { name } = await collLoader.initNewColl({ title: message.title });
-        defaultCollId = name;
-        port.postMessage(await listAllMsg(collLoader, { defaultCollId }));
-        await setLocalOption("defaultCollId", defaultCollId);
-        break;
-      }
-    }
-  });
-
-  port.onDisconnect.addListener(() => {
-    // @ts-expect-error - TS2538 - Type 'null' cannot be used as an index type.
-    if (self.recorders[tabId]) {
-      // @ts-expect-error - TS2538 - Type 'null' cannot be used as an index type.
-      self.recorders[tabId].port = null;
-    }
-  });
-}
 // @ts-expect-error - TS7006 - Parameter 'port' implicitly has an 'any' type.
 function sidepanelHandler(port) {
   if (!port.sender || port.sender.url !== chrome.runtime.getURL("sidepanel.html")) {
@@ -134,6 +78,7 @@ function sidepanelHandler(port) {
     switch (message.type) {
       case "startUpdates":
         tabId = message.tabId;
+        sidepanelPort = port;
         if (self.recorders[tabId]) {
           // @ts-expect-error - TS2339 - Property 'port' does not exist on type 'BrowserRecorder'.
           self.recorders[tabId].port = port;
@@ -226,8 +171,32 @@ function sidepanelHandler(port) {
       self.recorders[tabId].port = null;
     }
   });
-}
 
+
+}
+// ===========================================================================
+chrome.runtime.onMessage.addListener(
+  // @ts-expect-error - TS7006 - Parameter 'message' implicitly has an 'any' type.
+  (message /*sender, sendResponse*/) => {
+    console.log("onMessage", message);
+    switch (message.msg) {
+      case "startNew":
+        (async () => {
+          newRecUrl = message.url;
+          newRecCollId = message.collId;
+          autorun = message.autorun;
+          defaultCollId = await getLocalOption("defaultCollId");
+          chrome.tabs.create({ url: "about:blank" });
+        })();
+        break;
+
+      case "disableCSP":
+        disableCSPForTab(message.tabId);
+        break;
+    }
+    return true;
+  },
+);
 // ===========================================================================
 // @ts-expect-error - TS7006 - Parameter 'tab' implicitly has an 'any' type. | TS7006 - Parameter 'reason' implicitly has an 'any' type.
 chrome.debugger.onDetach.addListener((tab, reason) => {
@@ -239,16 +208,20 @@ chrome.debugger.onDetach.addListener((tab, reason) => {
 
 // @ts-expect-error - TS7006 - Parameter 'tab' implicitly has an 'any' type.
 chrome.tabs.onActivated.addListener(async ({ tabId }) => {
+
+  // @ts-expect-error - TS7034 - Variable 'err' implicitly has type 'any' in some locations where its type cannot be determined.
+  if (sidepanelPort) {
+    sidepanelPort.postMessage({ type: "update" });
+  }
   if (!isRecordingEnabled) return;
 
   // @ts-expect-error - chrome doesn't have type definitions
   const tab = await new Promise<chrome.tabs.Tab>((resolve) => chrome.tabs.get(tabId, resolve));
 
   if (!isValidUrl(tab.url)) return;
-
   if (!self.recorders[tabId]) {
     // @ts-expect-error - TS2554 - Expected 2 arguments, but got 3.
-    startRecorder(tabId, { collId: defaultCollId, port: null, autorun }, tab.url);
+    await startRecorder(tabId, { collId: defaultCollId, port: null, autorun }, tab.url);
   }
 });
 
@@ -384,8 +357,12 @@ async function startRecorder(tabId, opts) {
   }
 
   let err = null;
-
+  // @ts-expect-error - TS7034 - Variable 'err' implicitly has type 'any' in some locations where its type cannot be determined.
+  if (sidepanelPort) {
+    sidepanelPort.postMessage({ type: "update" });
+  }
   const { waitForTabUpdate } = opts;
+
 
   // @ts-expect-error - TS2339 - Property 'running' does not exist on type 'BrowserRecorder'.
   if (!waitForTabUpdate && !self.recorders[tabId].running) {
@@ -435,25 +412,7 @@ function isValidUrl(url) {
   return url && (url === "about:blank" || url.startsWith("https:") || url.startsWith("http:"));
 }
 
-// ===========================================================================
-chrome.runtime.onMessage.addListener(
-  // @ts-expect-error - TS7006 - Parameter 'message' implicitly has an 'any' type.
-  async (message /*sender, sendResponse*/) => {
-    switch (message.msg) {
-      case "startNew":
-        newRecUrl = message.url;
-        newRecCollId = message.collId;
-        autorun = message.autorun;
-        defaultCollId = await getLocalOption("defaultCollId");
-        chrome.tabs.create({ url: "about:blank" });
-        break;
 
-      case "disableCSP":
-        disableCSPForTab(message.tabId);
-        break;
-    }
-  },
-);
 
 // ===========================================================================
 // @ts-expect-error - TS7006 - Parameter 'tabId' implicitly has an 'any' type.
