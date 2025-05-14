@@ -424,6 +424,10 @@ class Recorder {
       // @ts-expect-error - TS2339 - Property 'numPending' does not exist on type 'Recorder'.
       numPending: this.numPending,
       // @ts-expect-error - TS2339 - Property 'pageInfo' does not exist on type 'Recorder'.
+      favIconUrl: this.pageInfo.favIconUrl,
+      // @ts-expect-error - TS2339 - Property 'pageInfo' does not exist on type 'Recorder'.
+      pageTitle: this.pageInfo.title,
+      // @ts-expect-error - TS2339 - Property 'pageInfo' does not exist on type 'Recorder'.
       pageUrl: this.pageInfo.url,
       // @ts-expect-error - TS2339 - Property 'pageInfo' does not exist on type 'Recorder'.
       pageTs: this.pageInfo.ts,
@@ -433,6 +437,8 @@ class Recorder {
       collId: this.collId,
       // @ts-expect-error - TS2339 - Property 'stopping' does not exist on type 'Recorder'.
       stopping: this.stopping,
+      // @ts-expect-error - TS2339 - Property 'tabId' does not exist on type 'Recorder'.
+      tabId: this.tabId,
       type: "status",
     };
   }

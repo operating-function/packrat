@@ -21,6 +21,9 @@ export class ArgoArchiveList extends LitElement {
         padding: 0;
         overflow: visible;
       }
+      .card-container {
+        padding: 0 1rem;
+      }
 
       md-elevated-card > details {
         border-radius: inherit;
@@ -56,9 +59,6 @@ export class ArgoArchiveList extends LitElement {
         height: 100%;
       }
 
-      .card-container {
-        padding: 0 1rem;
-      }
 
       img.favicon {
         width: 20px !important;
