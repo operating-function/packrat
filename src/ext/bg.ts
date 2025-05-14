@@ -357,7 +357,7 @@ async function startRecorder(tabId, opts) {
   }
 
   let err = null;
-  // @ts-expect-error - TS7034 - Variable 'err' implicitly has type 'any' in some locations where its type cannot be determined.
+  // @ts-expect-error - TS7034 - Variable 'sidepanelPort' implicitly has type 'any' in some locations where its type cannot be determined.
   if (sidepanelPort) {
     sidepanelPort.postMessage({ type: "update" });
   }
