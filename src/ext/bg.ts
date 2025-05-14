@@ -4,7 +4,11 @@ import { CollectionLoader } from "@webrecorder/wabac/swlib";
 
 import { listAllMsg } from "../utils";
 
-import { getLocalOption, removeLocalOption, setLocalOption } from "../localstorage";
+import {
+  getLocalOption,
+  removeLocalOption,
+  setLocalOption,
+} from "../localstorage";
 
 // ===========================================================================
 self.recorders = {};
@@ -63,10 +67,12 @@ chrome.runtime.onConnect.addListener((port) => {
   }
 });
 
-
 // @ts-expect-error - TS7006 - Parameter 'port' implicitly has an 'any' type.
 function sidepanelHandler(port) {
-  if (!port.sender || port.sender.url !== chrome.runtime.getURL("sidepanel.html")) {
+  if (
+    !port.sender ||
+    port.sender.url !== chrome.runtime.getURL("sidepanel.html")
+  ) {
     return;
   }
 
@@ -110,22 +116,29 @@ function sidepanelHandler(port) {
         autorun = message.autorun;
 
         // @ts-expect-error - tabs doesn't have type definitions
-        chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
-          for (const tab of tabs) {
-            if (!isValidUrl(tab.url)) continue;
+        chrome.tabs.query(
+          { active: true, currentWindow: true },
+          async (tabs) => {
+            for (const tab of tabs) {
+              if (!isValidUrl(tab.url)) continue;
 
-            // @ts-expect-error - TS2554 - Expected 2 arguments, but got 3.
-            await startRecorder(tab.id, { collId: defaultCollId, port: null, autorun }, tab.url);
-          }
+              // @ts-expect-error - TS2554 - Expected 2 arguments, but got 3.
+              await startRecorder(
+                tab.id,
+                { collId: defaultCollId, port: null, autorun },
+                tab.url,
+              );
+            }
 
-          port.postMessage({
-            type: "status",
-            recording: true,
-            autorun,
-            // @ts-expect-error - defaultCollId implicitly has an 'any' type.
-            collId: defaultCollId,
-          });
-        });
+            port.postMessage({
+              type: "status",
+              recording: true,
+              autorun,
+              // @ts-expect-error - defaultCollId implicitly has an 'any' type.
+              collId: defaultCollId,
+            });
+          },
+        );
 
         break;
       }
@@ -171,8 +184,6 @@ function sidepanelHandler(port) {
       self.recorders[tabId].port = null;
     }
   });
-
-
 }
 // ===========================================================================
 chrome.runtime.onMessage.addListener(
@@ -208,7 +219,6 @@ chrome.debugger.onDetach.addListener((tab, reason) => {
 
 // @ts-expect-error - TS7006 - Parameter 'tab' implicitly has an 'any' type.
 chrome.tabs.onActivated.addListener(async ({ tabId }) => {
-
   // @ts-expect-error - TS7034 - Variable 'err' implicitly has type 'any' in some locations where its type cannot be determined.
   if (sidepanelPort) {
     sidepanelPort.postMessage({ type: "update" });
@@ -216,12 +226,18 @@ chrome.tabs.onActivated.addListener(async ({ tabId }) => {
   if (!isRecordingEnabled) return;
 
   // @ts-expect-error - chrome doesn't have type definitions
-  const tab = await new Promise<chrome.tabs.Tab>((resolve) => chrome.tabs.get(tabId, resolve));
+  const tab = await new Promise<chrome.tabs.Tab>((resolve) =>
+    chrome.tabs.get(tabId, resolve),
+  );
 
   if (!isValidUrl(tab.url)) return;
   if (!self.recorders[tabId]) {
     // @ts-expect-error - TS2554 - Expected 2 arguments, but got 3.
-    await startRecorder(tabId, { collId: defaultCollId, port: null, autorun }, tab.url);
+    await startRecorder(
+      tabId,
+      { collId: defaultCollId, port: null, autorun },
+      tab.url,
+    );
   }
 });
 
@@ -301,7 +317,11 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
       }
     }
   } else if (changeInfo.url) {
-    if (isRecordingEnabled && isValidUrl(changeInfo.url) && !self.recorders[tabId]) {
+    if (
+      isRecordingEnabled &&
+      isValidUrl(changeInfo.url) &&
+      !self.recorders[tabId]
+    ) {
       // @ts-expect-error - TS2554 - Expected 2 arguments, but got 3.
       startRecorder(tabId, { collId: defaultCollId, autorun }, changeInfo.url);
       return;
@@ -363,7 +383,6 @@ async function startRecorder(tabId, opts) {
   }
   const { waitForTabUpdate } = opts;
 
-
   // @ts-expect-error - TS2339 - Property 'running' does not exist on type 'BrowserRecorder'.
   if (!waitForTabUpdate && !self.recorders[tabId].running) {
     try {
@@ -409,10 +428,13 @@ function isRecording(tabId) {
 // ===========================================================================
 // @ts-expect-error - TS7006 - Parameter 'url' implicitly has an 'any' type.
 function isValidUrl(url) {
-  return url && (url === "about:blank" || url.startsWith("https:") || url.startsWith("http:"));
+  return (
+    url &&
+    (url === "about:blank" ||
+      url.startsWith("https:") ||
+      url.startsWith("http:"))
+  );
 }
-
-
 
 // ===========================================================================
 // @ts-expect-error - TS7006 - Parameter 'tabId' implicitly has an 'any' type.

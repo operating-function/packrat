@@ -650,7 +650,9 @@ class Downloader {
       data.method = resource.method;
     }
 
-    return `${getSurt(resource.url)} ${resource.timestamp} ${JSON.stringify(data)}\n`;
+    return `${getSurt(resource.url)} ${resource.timestamp} ${JSON.stringify(
+      data,
+    )}\n`;
   }
 
   *generateCDX() {
@@ -1057,7 +1059,9 @@ class Downloader {
       };
 
       const urlParsed = new URL(url);
-      const statusline = `${method} ${url.slice(urlParsed.origin.length)} HTTP/1.1`;
+      const statusline = `${method} ${url.slice(
+        urlParsed.origin.length,
+      )} HTTP/1.1`;
 
       const reqRecord = WARCRecord.create(
         {
