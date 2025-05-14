@@ -352,7 +352,7 @@ class ArgoViewer extends LitElement {
   }
 
   firstUpdated() {
-    this.archiveList = document.getElementById(
+    this.archiveList = this.shadowRoot?.getElementById(
       "archive-list",
     ) as ArgoArchiveList;
 
