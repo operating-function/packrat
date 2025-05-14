@@ -59,6 +59,7 @@
       }
 
     </style>
+    <script src="webtorrent.min.js"></script>
     <script src="./sidepanel.js"></script>
   </head>
   <body style="margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden;">
@@ -82,7 +83,7 @@
 
     <div class="tab-panels" style="flex: 1; overflow-y: auto; position: relative; padding-bottom: 90px;">
       <div id="my-archives" class="tab-panel" active>
-        <argo-archive-list></argo-archive-list>
+        <argo-archive-list id="archive-list"></argo-archive-list>
       </div>
       <div id="shared-archives" class="tab-panel">
         <!-- future “shared” list… -->

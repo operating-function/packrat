@@ -68,6 +68,12 @@ const optimization = {
 const resolve = {
   extensions: [".ts", ".js"],
   plugins: [new TsconfigPathsPlugin()],
+  alias: {},
+  fallback: {
+    crypto: false,
+    stream: require.resolve("stream-browserify"),
+    buffer: require.resolve("buffer/"),
+  },
 };
 
 // ===========================================================================
@@ -222,6 +228,7 @@ const extensionWebConfig = (env, argv) => {
   const copy = [
     { from: "static", to: "./" },
     { from: "ruffle", to: "./ruffle/" },
+    { from: "static/lib/webtorrent.min.js", to: "webtorrent.min.js" },
   ];
 
   const entry = {
