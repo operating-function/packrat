@@ -113,8 +113,29 @@ export class ArgoArchiveList extends LitElement {
     `,
   ];
 
-  @state() private pages: Array<{ ts: string; url: string; title?: string; favIconUrl?: string }> = [];
+  @state() private pages: Array<{
+    id: string;
+    ts: string;
+    url: string;
+    title?: string;
+    favIconUrl?: string;
+  }> = [];
   @state() private collId = "";
+  @state() private selectedPages = new Set<string>();
+
+  private togglePageSelection(ts: string) {
+    const next = new Set(this.selectedPages);
+    if (next.has(ts)) {
+      next.delete(ts);
+    } else {
+      next.add(ts);
+    }
+    this.selectedPages = next;
+  }
+
+  public getSelectedPages() {
+    return this.pages.filter((p) => this.selectedPages.has(p.ts));
+  }
 
   async connectedCallback() {
     super.connectedCallback();
@@ -168,12 +189,18 @@ export class ArgoArchiveList extends LitElement {
                       .map((page) => {
                         const u = new URL(page.url);
                         return html`
-                          <md-list-item type="button" @click=${() => this._openPage(page)}>
+                          <md-list-item
+                            type="button"
+                            @click=${() => this._openPage(page)}
+                          >
                             <div slot="start" class="leading-group">
                               <md-checkbox
                                 slot="start"
                                 touch-target="wrapper"
-                                @click=${(e: Event) => e.stopPropagation()}
+                                @click=${(e: Event) => {
+                                  e.stopPropagation();
+                                  this.togglePageSelection(page.ts);
+                                }}
                               ></md-checkbox>
 
                               ${page.favIconUrl
@@ -215,19 +242,28 @@ export class ArgoArchiveList extends LitElement {
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(today.getDate() - 1);
-    const opts: Intl.DateTimeFormatOptions = { weekday: "long", month: "long", day: "numeric", year: "numeric" };
+    const opts: Intl.DateTimeFormatOptions = {
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    };
     const label = date.toLocaleDateString("en-US", opts);
     if (date.toDateString() === today.toDateString()) return `Today — ${label}`;
-    if (date.toDateString() === yesterday.toDateString()) return `Yesterday — ${label}`;
+    if (date.toDateString() === yesterday.toDateString())
+      return `Yesterday — ${label}`;
     return label;
   }
 
   private _openPage(page: { ts: string; url: string }) {
-    const tsParam = new Date(Number(page.ts)).toISOString().replace(/[-:TZ.]/g, "");
+    const tsParam = new Date(Number(page.ts))
+      .toISOString()
+      .replace(/[-:TZ.]/g, "");
     const urlEnc = encodeURIComponent(page.url);
     const fullUrl =
-      `${chrome.runtime.getURL("index.html")}?source=local://${this.collId}&url=${urlEnc}` +
-      `#view=pages&url=${urlEnc}&ts=${tsParam}`;
+      `${chrome.runtime.getURL("index.html")}?source=local://${
+        this.collId
+      }&url=${urlEnc}` + `#view=pages&url=${urlEnc}&ts=${tsParam}`;
     chrome.tabs.create({ url: fullUrl });
   }
 }

@@ -5,6 +5,8 @@ import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 import "./argo-archive-list";
 import "@material/web/textfield/outlined-text-field.js";
 import "@material/web/icon/icon.js";
+import { ArgoArchiveList } from "./argo-archive-list";
+import { Downloader } from "./sw/downloader";
 
 
 import wrRec from "./assets/icons/recLogo.svg";
@@ -26,9 +28,12 @@ import "@material/web/button/filled-button.js";
 import "@material/web/button/outlined-button.js";
 import "@material/web/divider/divider.js";
 import { mapIntegerToRange, truncateString } from "./utils";
+import { CollectionLoader } from "@webrecorder/wabac/swlib";
+import WebTorrent from "webtorrent";
 
 document.adoptedStyleSheets.push(typescaleStyles.styleSheet!);
 
+const collLoader = new CollectionLoader();
 class ArgoViewer extends LitElement {
 
   static styles: CSSResultGroup = [
@@ -125,6 +130,7 @@ class ArgoViewer extends LitElement {
     `
   ];
 
+  private archiveList!: ArgoArchiveList;
   constructor() {
     super();
 
@@ -221,7 +227,136 @@ class ArgoViewer extends LitElement {
     return "";
   }
 
+  private async onDownload() {
+    const selectedPages = this.archiveList?.getSelectedPages?.() || [];
+    if (!selectedPages.length) {
+      alert("Please select some pages to share.");
+      return;
+    }
+
+    console.log("Selected pages to share:", selectedPages);
+
+    const defaultCollId = (await getLocalOption("defaultCollId")) || "";
+    const coll = await collLoader.loadColl(defaultCollId);
+
+    const pageTsList = selectedPages.map((p) => p.id);
+    const format = "wacz";
+    const filename = `archive-${Date.now()}.wacz`;
+
+    // Webrecorder swlib API format for download:
+    const downloader = new Downloader({
+      coll,
+      format,
+      filename,
+      pageList: pageTsList,
+    });
+
+    const response = await downloader.download();
+    if (!(response instanceof Response)) {
+      console.error("Download failed:", response);
+      alert("Failed to download archive.");
+      return;
+    }
+
+    console.log("Download response:", response);
+
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+
+    // Create temporary <a> to trigger download
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+
+    // Cleanup
+    URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+
+    console.log("WACZ file downloaded:", filename);
+  }
+
+  private async onShare() {
+    const selectedPages = this.archiveList?.getSelectedPages?.() || [];
+    if (!selectedPages.length) {
+      alert("Please select some pages to share.");
+      return;
+    }
+
+    console.log("Selected pages to share:", selectedPages);
+
+    const defaultCollId = (await getLocalOption("defaultCollId")) || "";
+    const coll = await collLoader.loadColl(defaultCollId);
+
+    const pageTsList = selectedPages.map((p) => p.id);
+    const format = "wacz";
+    const filename = `archive-${Date.now()}.wacz`;
+
+    // Webrecorder swlib API format for download:
+    const downloader = new Downloader({
+      coll,
+      format,
+      filename,
+      pageList: pageTsList,
+    });
+
+    const response = await downloader.download();
+    if (!(response instanceof Response)) {
+      console.error("Download failed:", response);
+      alert("Failed to download archive.");
+      return;
+    }
+
+    const opfsRoot = await navigator.storage.getDirectory();
+    const waczFileHandle = await opfsRoot.getFileHandle(filename, {
+      create: true,
+    });
+    const writable = await waczFileHandle.createWritable();
+
+    const reader = response.body!.getReader();
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      await writable.write(value);
+    }
+
+    await writable.close();
+
+    console.log("WACZ saved to OPFS as:", filename);
+
+    // Get a File object from OPFS
+    const fileHandle = await opfsRoot.getFileHandle(filename);
+    const file = await fileHandle.getFile();
+
+    // Create a WebTorrent client if not already available
+    const client = new (window as any).WebTorrent();
+
+    // Seed the file
+    // @ts-expect-error
+    client.seed(file, (torrent) => {
+      const magnetURI = torrent.magnetURI;
+      console.log("Seeding WACZ file via WebTorrent:", magnetURI);
+
+      // Copy to clipboard
+      navigator.clipboard
+        .writeText(magnetURI)
+        .then(() => {
+          alert(`Magnet link copied to clipboard:\n${magnetURI}`);
+        })
+        .catch((err) => {
+          console.error("Failed to copy magnet link:", err);
+          alert(`Magnet Link Ready:\n${magnetURI}`);
+        });
+    });
+  }
+
   firstUpdated() {
+    this.archiveList = document.getElementById(
+      "archive-list",
+    ) as ArgoArchiveList;
+
+    console.log("Archive list:", this.archiveList);
     this.registerMessages();
   }
 
@@ -383,7 +518,10 @@ class ArgoViewer extends LitElement {
       this.replayUrl = this.getCollPage() + "#" + params.toString();
     }
 
-    if (changedProperties.has("pageUrl") || changedProperties.has("failureMsg")) {
+    if (
+      changedProperties.has("pageUrl") ||
+      changedProperties.has("failureMsg")
+    ) {
       // @ts-expect-error - TS2339 - Property 'canRecord' does not exist on type 'ArgoViewer'.
       this.canRecord =
         // @ts-expect-error - TS2339 - Property 'pageUrl' does not exist on type 'ArgoViewer'.
@@ -605,7 +743,7 @@ class ArgoViewer extends LitElement {
 
       <div class="tab-panels" style="flex: 1; overflow-y: auto; position: relative; flex-grow: 1;">
         <div id="my-archives" class="tab-panel" active>
-          <argo-archive-list></argo-archive-list>
+          <argo-archive-list id="archive-list"></argo-archive-list>
         </div>
         <div id="shared-archives" class="tab-panel">
           <!-- future “shared” list… -->
@@ -626,22 +764,29 @@ class ArgoViewer extends LitElement {
             // @ts-expect-error - TS2339 - Property 'recording' does not exist on type 'ArgoViewer'.
             !this.recording
               ? html`
-                  <md-filled-button
-                    style="
-                    --md-sys-color-primary-container: #7b1fa2;
-                    color: white;
-                    border-radius: 9999px;
-                  "
-                    ?disabled=${
-                      this.actionButtonDisabled || 
-                      // @ts-expect-error - TS2339 - Property 'canRecord' does not exist on type 'ArgoViewer'.
-                      !this.canRecord
-                    }
-                    @click=${this.onStart}
-                  >
-                    <md-icon slot="icon" style="color:white">public</md-icon>
-                    Resume Archiving
-                  </md-filled-button>
+                <md-filled-button
+                  style="
+                  --md-sys-color-primary-container: #7b1fa2;
+                  color: white;
+                  border-radius: 9999px;
+                "
+                  ?disabled=${
+                    this.actionButtonDisabled || 
+                    // @ts-expect-error - TS2339 - Property 'canRecord' does not exist on type 'ArgoViewer'.
+                    !this.canRecord
+                  }
+                  @click=${this.onStart}
+                >
+                  <md-icon slot="icon" style="color:white">public</md-icon>
+                  Resume Archiving
+                </md-filled-button>
+                <md-icon-button aria-label="Download" @click=${this.onDownload}>
+                  <md-icon style="color: gray;">download</md-icon>
+                </md-icon-button>
+
+                <md-icon-button aria-label="Share" @click=${this.onShare}>
+                  <md-icon style="color: gray;">share</md-icon>
+                </md-icon-button>
                 `
               : html`
                   <md-outlined-button
