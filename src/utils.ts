@@ -63,7 +63,6 @@ export async function listAllMsg(collLoader, { defaultCollId = null } = {}) {
   return msg;
 }
 
-
 export function mapIntegerToRange(integer: number) {
   // Calculate distance from 0 (use absolute value for negative numbers)
   const distance = Math.abs(integer);
