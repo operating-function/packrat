@@ -28,7 +28,6 @@ import "@material/web/button/outlined-button.js";
 import "@material/web/divider/divider.js";
 import { mapIntegerToRange, truncateString } from "./utils";
 import { CollectionLoader } from "@webrecorder/wabac/swlib";
-import WebTorrent from "webtorrent";
 
 document.adoptedStyleSheets.push(typescaleStyles.styleSheet!);
 
@@ -129,7 +128,8 @@ class ArgoViewer extends LitElement {
   private archiveList!: ArgoArchiveList;
   constructor() {
     super();
-
+    // @ts-expect-error - TS2339 - Property 'searchQuery' does not exist on type 'ArgoViewer'.
+    this.searchQuery = "";
     // @ts-expect-error - TS2339 - Property 'collections' does not exist on type 'ArgoViewer'.
     this.collections = [];
     // @ts-expect-error - TS2339 - Property 'collTitle' does not exist on type 'ArgoViewer'.
@@ -183,6 +183,7 @@ class ArgoViewer extends LitElement {
 
   static get properties() {
     return {
+      searchQuery: { type: String },
       collections: { type: Array },
       collId: { type: String },
       collTitle: { type: String },
@@ -721,6 +722,12 @@ class ArgoViewer extends LitElement {
       <p>${this.notRecordingMessage}</p>`;
   }
 
+  private onSearchInput(e: InputEvent) {
+    const input = e.currentTarget as HTMLInputElement;
+    // @ts-expect-error - TS2339 - Property 'searchQuery' does not exist on type 'ArgoViewer'.
+    this.searchQuery = input.value;
+  }
+
   renderSearch() {
     return html`
       <div class="search-container">
@@ -729,6 +736,11 @@ class ArgoViewer extends LitElement {
           placeholder="Search archived pages"
           aria-label="Search archived pages"
           class="search-field"
+          @input=${this.onSearchInput}
+          .value=${
+            // @ts-expect-error - TS2339 - Property 'searchQuery' does not exist on type 'ArgoViewer'.
+            this.searchQuery
+          }
         >
           <md-icon slot="leading-icon">search</md-icon>
         </md-filled-text-field>
@@ -752,7 +764,13 @@ class ArgoViewer extends LitElement {
         style="flex: 1; overflow-y: auto; position: relative; flex-grow: 1;"
       >
         <div id="my-archives" class="tab-panel" active>
-          <argo-archive-list id="archive-list"></argo-archive-list>
+          <argo-archive-list
+            id="archive-list"
+            .filterQuery=${
+              //@ts-expect-error - TS2339 - Property 'searchQuery' does not exist on type 'ArgoViewer'.
+              this.searchQuery
+            }
+          ></argo-archive-list>
         </div>
         <div id="shared-archives" class="tab-panel">
           <!-- future “shared” list… -->

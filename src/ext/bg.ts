@@ -115,17 +115,22 @@ function sidepanelHandler(port) {
         defaultCollId = message.collId;
         autorun = message.autorun;
 
-        // @ts-expect-error - tabs doesn't have type definitions
         chrome.tabs.query(
           { active: true, currentWindow: true },
+          //@ts-expect-error tabs has any type
           async (tabs) => {
             for (const tab of tabs) {
               if (!isValidUrl(tab.url)) continue;
 
-              // @ts-expect-error - TS2554 - Expected 2 arguments, but got 3.
               await startRecorder(
                 tab.id,
-                { collId: defaultCollId, port: null, autorun },
+                {
+                  // @ts-expect-error - collId implicitly has an 'any' type.
+                  collId: defaultCollId,
+                  port: null,
+                  autorun,
+                },
+                //@ts-expect-error - 2 parameters but 3
                 tab.url,
               );
             }
@@ -232,10 +237,16 @@ chrome.tabs.onActivated.addListener(async ({ tabId }) => {
 
   if (!isValidUrl(tab.url)) return;
   if (!self.recorders[tabId]) {
-    // @ts-expect-error - TS2554 - Expected 2 arguments, but got 3.
     await startRecorder(
       tabId,
-      { collId: defaultCollId, port: null, autorun },
+      {
+        // @ts-expect-error - collId implicitly has an 'any' type.
+        collId: defaultCollId,
+        port: null,
+        autorun,
+      },
+
+      // @ts-expect-error - 2 parameters but 3
       tab.url,
     );
   }
