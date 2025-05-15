@@ -341,15 +341,28 @@ export class ArgoArchiveList extends LitElement {
     return label;
   }
 
-  private _openPage(page: { ts: string; url: string }) {
+  private async _openPage(page: { ts: string; url: string }) {
     const tsParam = new Date(Number(page.ts))
       .toISOString()
       .replace(/[-:TZ.]/g, "");
     const urlEnc = encodeURIComponent(page.url);
     const fullUrl =
-      `${chrome.runtime.getURL("index.html")}?source=local://${
-        this.collId
-      }&url=${urlEnc}` + `#view=pages&url=${urlEnc}&ts=${tsParam}`;
-    chrome.tabs.create({ url: fullUrl });
+      `${chrome.runtime.getURL("index.html")}?source=local://${this.collId}` +
+      `&url=${urlEnc}#view=pages&url=${urlEnc}&ts=${tsParam}`;
+
+    const extensionUrlPrefix = chrome.runtime.getURL("index.html");
+
+    // Check if any existing tab already displays the archive viewer
+    const tabs = await chrome.tabs.query({});
+    // @ts-expect-error - t implicitly has an 'any' type
+    const viewerTab = tabs.find((t) => t.url?.startsWith(extensionUrlPrefix));
+
+    if (viewerTab && viewerTab.id) {
+      // Reuse the existing tab
+      chrome.tabs.update(viewerTab.id, { url: fullUrl, active: true });
+    } else {
+      // Fallback: open a new tab
+      chrome.tabs.create({ url: fullUrl });
+    }
   }
 }
