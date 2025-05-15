@@ -112,7 +112,7 @@ export class ArgoArchiveList extends LitElement {
       }
       .search-result-text {
         width: 100%;
-        padding-left: 12px;
+        padding-left: 14px;
         padding-right: 12px;
         padding-top: 4px;
         padding-bottom: 12px;
