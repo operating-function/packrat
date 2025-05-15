@@ -118,6 +118,14 @@ export class ArgoArchiveList extends LitElement {
         padding-bottom: 12px;
         box-sizing: border-box;
       }
+
+      .search-result-text b {
+        background-color: #cf7df1;
+        color: black;
+        font-weight: bold;
+        padding: 0 2px;
+        border-radius: 2px;
+      }
     `,
   ];
 
