@@ -160,7 +160,8 @@ class Recorder {
     this.archiveCookies = (await getLocalOption("archiveCookies")) === "1";
     this.archiveStorage = (await getLocalOption("archiveStorage")) === "1";
     this.archiveFlash = (await getLocalOption("archiveFlash")) === "1";
-    this.archiveScreenshots = (await getLocalOption("archiveScreenshots")) === "1";
+    this.archiveScreenshots =
+      (await getLocalOption("archiveScreenshots")) === "1";
     this.archivePDF = (await getLocalOption("archivePDF")) === "1";
   }
 
@@ -943,13 +944,13 @@ class Recorder {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async savePDF(pageInfo: any) {
     // @ts-expect-error: ignore param
-    await this.send("Emulation.setEmulatedMedia", {type: "screen"});
+    await this.send("Emulation.setEmulatedMedia", { type: "screen" });
 
     // @ts-expect-error: ignore param
-    const resp = await this.send("Page.printToPDF", {printBackground: true});
+    const resp = await this.send("Page.printToPDF", { printBackground: true });
 
     // @ts-expect-error: ignore param
-    await this.send("Emulation.setEmulatedMedia", {type: ""});
+    await this.send("Emulation.setEmulatedMedia", { type: "" });
 
     const payload = Buffer.from(resp.data, "base64");
     const mime = "application/pdf";
@@ -961,10 +962,13 @@ class Recorder {
       statusText: "OK",
       pageId: pageInfo.id,
       mime,
-      respHeaders: {"Content-Type": mime, "Content-Length": payload.length + ""},
+      respHeaders: {
+        "Content-Type": mime,
+        "Content-Length": payload.length + "",
+      },
       reqHeaders: {},
       payload,
-      extraOpts: {resource: true},
+      extraOpts: { resource: true },
     };
 
     console.log("pdf", payload.length);
@@ -975,21 +979,25 @@ class Recorder {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async saveScreenshot(pageInfo: any) {
-
     // View Screenshot
     const width = 1920;
     const height = 1080;
 
     // @ts-expect-error: ignore param
-    await this.send("Emulation.setDeviceMetricsOverride", {width, height, deviceScaleFactor: 0, mobile: false});
+    await this.send("Emulation.setDeviceMetricsOverride", {
+      width,
+      height,
+      deviceScaleFactor: 0,
+      mobile: false,
+    });
     // @ts-expect-error: ignore param
-    const resp = await this.send("Page.captureScreenshot", {format: "png"});
+    const resp = await this.send("Page.captureScreenshot", { format: "png" });
 
     const payload = Buffer.from(resp.data, "base64");
-    const blob = new Blob([payload], {type: "image/png"});
+    const blob = new Blob([payload], { type: "image/png" });
 
     await this.send("Emulation.clearDeviceMetricsOverride");
-    
+
     const mime = "image/png";
 
     const fullData = {
@@ -999,34 +1007,43 @@ class Recorder {
       statusText: "OK",
       pageId: pageInfo.id,
       mime,
-      respHeaders: {"Content-Type": mime, "Content-Length": payload.length + ""},
+      respHeaders: {
+        "Content-Type": mime,
+        "Content-Length": payload.length + "",
+      },
       reqHeaders: {},
       payload,
-      extraOpts: {resource: true},
+      extraOpts: { resource: true },
     };
 
     const thumbWidth = 640;
     const thumbHeight = 360;
 
-    const bitmap = await self.createImageBitmap(blob, {resizeWidth: thumbWidth, resizeHeight: thumbHeight});
-    
+    const bitmap = await self.createImageBitmap(blob, {
+      resizeWidth: thumbWidth,
+      resizeHeight: thumbHeight,
+    });
+
     const canvas = new OffscreenCanvas(thumbWidth, thumbWidth);
     const context = canvas.getContext("bitmaprenderer")!;
     context.transferFromImageBitmap(bitmap);
 
-    const resizedBlob = await canvas.convertToBlob({type: "image/png"});
+    const resizedBlob = await canvas.convertToBlob({ type: "image/png" });
 
     const thumbPayload = new Uint8Array(await resizedBlob.arrayBuffer());
 
-    const thumbData = {...fullData,
+    const thumbData = {
+      ...fullData,
       url: "urn:thumbnail:" + pageInfo.url,
-      respHeaders: {"Content-Type": mime, "Content-Length": thumbPayload.length + ""},
-      payload: thumbPayload
+      respHeaders: {
+        "Content-Type": mime,
+        "Content-Length": thumbPayload.length + "",
+      },
+      payload: thumbPayload,
     };
-    
+
     // @ts-expect-error - TS2339 - Property '_doAddResource' does not exist on type 'Recorder'.
     await this._doAddResource(fullData);
-
 
     // @ts-expect-error - TS2339 - Property '_doAddResource' does not exist on type 'Recorder'.
     await this._doAddResource(thumbData);

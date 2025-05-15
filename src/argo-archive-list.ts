@@ -59,7 +59,6 @@ export class ArgoArchiveList extends LitElement {
         height: 100%;
       }
 
-
       img.favicon {
         width: 20px !important;
         height: 20px !important;

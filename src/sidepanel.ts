@@ -1,13 +1,12 @@
 import "@material/web/all.js";
 import { styles as typescaleStyles } from "@material/web/typography/md-typescale-styles.js";
-import { LitElement, html, css, CSSResultGroup  } from "lit";
+import { LitElement, html, css, CSSResultGroup } from "lit";
 import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 import "./argo-archive-list";
 import "@material/web/textfield/outlined-text-field.js";
 import "@material/web/icon/icon.js";
 import { ArgoArchiveList } from "./argo-archive-list";
 import { Downloader } from "./sw/downloader";
-
 
 import wrRec from "./assets/icons/recLogo.svg";
 
@@ -35,17 +34,15 @@ document.adoptedStyleSheets.push(typescaleStyles.styleSheet!);
 
 const collLoader = new CollectionLoader();
 class ArgoViewer extends LitElement {
-
   static styles: CSSResultGroup = [
     typescaleStyles as unknown as CSSResultGroup,
     css`
-
       md-tabs {
-          background-color: white;
+        background-color: white;
       }
 
       .search-container {
-        margin: 16px 12px;  
+        margin: 16px 12px;
         height: 32px;
         background: #ece7f8;
         border-radius: 9999px;
@@ -58,9 +55,8 @@ class ArgoViewer extends LitElement {
         width: 100%;
         --md-filled-text-field-container-color: transparent;
         --md-ref-shape-corner-radius: 9999px;
-        overflow: hidden; 
+        overflow: hidden;
       }
-
 
       .search-field::part(container),
       .search-field::part(hover-overlay),
@@ -75,7 +71,7 @@ class ArgoViewer extends LitElement {
       .search-field md-icon,
       .search-field input::placeholder {
         color: #6b6b6b;
-      },
+      }
 
       md-elevated-card {
         display: block;
@@ -127,7 +123,7 @@ class ArgoViewer extends LitElement {
         border-radius: 4px;
         filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.6));
       }
-    `
+    `,
   ];
 
   private archiveList!: ArgoArchiveList;
@@ -209,8 +205,8 @@ class ArgoViewer extends LitElement {
       behaviorMsg: { type: String },
       autorun: { type: Boolean },
     };
-  }  
-  
+  }
+
   // @ts-expect-error - TS7006 - Parameter 'match' implicitly has an 'any' type.
   findTitleFor(match) {
     if (!match) {
@@ -581,14 +577,11 @@ class ArgoViewer extends LitElement {
     return html`
       <div class="card-container">
         <md-elevated-card style="margin:1rem 0; display:block;">
-          <div class="summary">
-            ${this.renderStatus()}
-          </div>
+          <div class="summary">${this.renderStatus()}</div>
         </md-elevated-card>
       </div>
     `;
   }
-  
 
   renderStatus() {
     // @ts-expect-error - TS2339 - Property 'behaviorState' does not exist on type 'ArgoViewer'.
@@ -610,47 +603,59 @@ class ArgoViewer extends LitElement {
           // @ts-expect-error - TS2339 - Property 'favIconUrl' does not exist on type 'ArgoViewer'.
           this.favIconUrl ||
           // @ts-expect-error - TS2339 - Property 'pageUrl' does not exist on type 'ArgoViewer'.
-          this.pageTitle ? html`
-        <div style="display: flex; align-items: start; gap: 0.5rem;">
-        <img src="${
-          // @ts-expect-error - TS2339 - Property 'favIconUrl' does not exist on type 'ArgoViewer'.
-          this.favIconUrl
-        }" alt="Favicon" class="favicon">
-          <span class="status-page-title">${
-            //@ts-expect-error - TS2339 - Property 'pageTitle' does not exist on type 'ArgoViewer'.
-            truncateString(this.pageTitle)
-          }</span>
-        </div>
-        ` : ""
+          this.pageTitle
+            ? html`
+                <div style="display: flex; align-items: start; gap: 0.5rem;">
+                  <img
+                    src="${
+                      // @ts-expect-error - TS2339 - Property 'favIconUrl' does not exist on type 'ArgoViewer'.
+                      this.favIconUrl
+                    }"
+                    alt="Favicon"
+                    class="favicon"
+                  />
+                  <span class="status-page-title"
+                    >${
+                      //@ts-expect-error - TS2339 - Property 'pageTitle' does not exist on type 'ArgoViewer'.
+                      truncateString(this.pageTitle)
+                    }</span
+                  >
+                </div>
+              `
+            : ""
         }
         <span class="status-title">Status</span>
         ${
           // @ts-expect-error - TS2339 - Property 'status' does not exist on type 'ArgoViewer'.
-          this.status?.numPending ? html`
-        <md-linear-progress
-          title=${`${
-                // @ts-expect-error - TS2339 - Property 'status' does not exist on type 'RecPopup'.
-                this.status.numPending
-              } URLs pending${
-                // @ts-expect-error - TS2339 - Property 'waitingForStop' does not exist on type 'RecPopup'.
-                this.waitingForStop
-                  ? "."
-                  : ", please wait before loading a new page."
-              }
+          this.status?.numPending
+            ? html`
+                <md-linear-progress
+                  title=${`${
+                    // @ts-expect-error - TS2339 - Property 'status' does not exist on type 'RecPopup'.
+                    this.status.numPending
+                  } URLs pending${
+                    // @ts-expect-error - TS2339 - Property 'waitingForStop' does not exist on type 'RecPopup'.
+                    this.waitingForStop
+                      ? "."
+                      : ", please wait before loading a new page."
+                  }
           `}
-          value=${mapIntegerToRange(
-            // @ts-expect-error - TS2339 - Property 'status' does not exist on type 'ArgoViewer'.
-            this.status?.numPending || 0
-          )}
-          style="--md-sys-color-primary: #7b1fa2; width: 100%; margin-bottom: 0.5rem;"
-        ></md-linear-progress>
-        ` : ""
+                  value=${mapIntegerToRange(
+                    // @ts-expect-error - TS2339 - Property 'status' does not exist on type 'ArgoViewer'.
+                    this.status?.numPending || 0,
+                  )}
+                  style="--md-sys-color-primary: #7b1fa2; width: 100%; margin-bottom: 0.5rem;"
+                ></md-linear-progress>
+              `
+            : ""
         }
         ${
           // @ts-expect-error - TS2339 - Property 'status' does not exist on type 'ArgoViewer'. | TS2339 - Property 'status' does not exist on type 'ArgoViewer'.
           !this.status?.numPending
-            ? html`<span class="status-ready">All resources archived</span>` : ""
-        }</div>`;
+            ? html`<span class="status-ready">All resources archived</span>`
+            : ""
+        }
+      </div>`;
     }
 
     // @ts-expect-error - TS2339 - Property 'failureMsg' does not exist on type 'ArgoViewer'.
@@ -699,24 +704,21 @@ class ArgoViewer extends LitElement {
         `;
       }
 
-      return html`
-        <span class="status-title">Status</span>
-        <br/>
+      return html` <span class="status-title">Status</span>
+        <br />
         <p>Can't archive this page.</p>`;
     }
 
     // @ts-expect-error - TS2339 - Property 'waitingForStart' does not exist on type 'ArgoViewer'.
     if (this.waitingForStart) {
-      return html`
-        <span class="status-title">Status</span>
-        <br/>
+      return html` <span class="status-title">Status</span>
+        <br />
         <p>Archiving will start after the page reloads...</p>`;
     }
 
-    return html`
-        <span class="status-title">Status</span>
-        <br/>
-        <p>${this.notRecordingMessage}</p>`;
+    return html` <span class="status-title">Status</span>
+      <br />
+      <p>${this.notRecordingMessage}</p>`;
   }
 
   renderSearch() {
@@ -737,11 +739,18 @@ class ArgoViewer extends LitElement {
   renderTabs() {
     return html`
       <md-tabs id="tabs" aria-label="Archive tabs">
-        <md-primary-tab class="md-typescale-label-large">My Archives</md-primary-tab>
-        <md-primary-tab class="md-typescale-label-large">My Shared Archives</md-primary-tab>
+        <md-primary-tab class="md-typescale-label-large"
+          >My Archives</md-primary-tab
+        >
+        <md-primary-tab class="md-typescale-label-large"
+          >My Shared Archives</md-primary-tab
+        >
       </md-tabs>
 
-      <div class="tab-panels" style="flex: 1; overflow-y: auto; position: relative; flex-grow: 1;">
+      <div
+        class="tab-panels"
+        style="flex: 1; overflow-y: auto; position: relative; flex-grow: 1;"
+      >
         <div id="my-archives" class="tab-panel" active>
           <argo-archive-list id="archive-list"></argo-archive-list>
         </div>
@@ -754,39 +763,40 @@ class ArgoViewer extends LitElement {
 
   render() {
     return html`
-      ${this.renderSearch()}
-      ${this.renderStatusCard()}
-      ${this.renderTabs()}
+      ${this.renderSearch()} ${this.renderStatusCard()} ${this.renderTabs()}
       <div style="height: 72px; width: 100%;">
         <md-divider></md-divider>
-        <div style="padding:1rem; display:flex; align-items:center; justify-content:space-between; ">
+        <div
+          style="padding:1rem; display:flex; align-items:center; justify-content:space-between; "
+        >
           ${
             // @ts-expect-error - TS2339 - Property 'recording' does not exist on type 'ArgoViewer'.
             !this.recording
               ? html`
-                <md-filled-button
-                  style="
+                  <md-filled-button
+                    style="
                   --md-sys-color-primary-container: #7b1fa2;
                   color: white;
                   border-radius: 9999px;
                 "
-                  ?disabled=${
-                    this.actionButtonDisabled || 
+                    ?disabled=${this.actionButtonDisabled ||
                     // @ts-expect-error - TS2339 - Property 'canRecord' does not exist on type 'ArgoViewer'.
-                    !this.canRecord
-                  }
-                  @click=${this.onStart}
-                >
-                  <md-icon slot="icon" style="color:white">public</md-icon>
-                  Resume Archiving
-                </md-filled-button>
-                <md-icon-button aria-label="Download" @click=${this.onDownload}>
-                  <md-icon style="color: gray;">download</md-icon>
-                </md-icon-button>
+                    !this.canRecord}
+                    @click=${this.onStart}
+                  >
+                    <md-icon slot="icon" style="color:white">public</md-icon>
+                    Resume Archiving
+                  </md-filled-button>
+                  <md-icon-button
+                    aria-label="Download"
+                    @click=${this.onDownload}
+                  >
+                    <md-icon style="color: gray;">download</md-icon>
+                  </md-icon-button>
 
-                <md-icon-button aria-label="Share" @click=${this.onShare}>
-                  <md-icon style="color: gray;">share</md-icon>
-                </md-icon-button>
+                  <md-icon-button aria-label="Share" @click=${this.onShare}>
+                    <md-icon style="color: gray;">share</md-icon>
+                  </md-icon-button>
                 `
               : html`
                   <md-outlined-button
