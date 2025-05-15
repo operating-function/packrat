@@ -53,8 +53,6 @@ class ArgoViewer extends LitElement {
 
       .search-field {
         width: 100%;
-        --md-filled-text-field-container-color: transparent;
-        --md-ref-shape-corner-radius: 9999px;
         overflow: hidden;
       }
 
@@ -654,7 +652,7 @@ class ArgoViewer extends LitElement {
                     // @ts-expect-error - TS2339 - Property 'status' does not exist on type 'ArgoViewer'.
                     this.status?.numPending || 0,
                   )}
-                  style="--md-sys-color-primary: #7b1fa2; width: 100%; margin-bottom: 0.5rem;"
+                  style="width: 100%; margin-bottom: 0.5rem;"
                 ></md-linear-progress>
               `
             : ""
@@ -710,25 +708,30 @@ class ArgoViewer extends LitElement {
       if (this.pageUrl?.startsWith(this.extRoot)) {
         return html`
           <span class="status-title">Status</span>
-          <p class="is-size-7">
-            This page is part of the extension. You can view existing archived
-            items from here. To start a new archiving session, click the
-            <wr-icon .src="${wrRec}"></wr-icon> Start Archiving button and enter
-            a new URL.
-          </p>
+          <p class="is-size-7">This page is part of the extension.</p>
         `;
       }
 
       return html` <span class="status-title">Status</span>
-        <br />
-        <p>Can't archive this page.</p>`;
+        <div class="status-container">
+          <md-icon filled style="color: var(--md-sys-color-secondary)"
+            >folder_off</md-icon
+          >
+          <span class="status-ready">Can't archive this page.</span>
+        </div>`;
     }
 
     // @ts-expect-error - TS2339 - Property 'waitingForStart' does not exist on type 'ArgoViewer'.
     if (this.waitingForStart) {
       return html` <span class="status-title">Status</span>
-        <br />
-        <p>Archiving will start after the page reloads...</p>`;
+        <div class="status-container">
+          <md-icon filled style="color: var(--md-sys-color-secondary)"
+            >folder_off</md-icon
+          >
+          <span class="status-ready"
+            >Archiving will start after the page reloads...</span
+          >
+        </div>`;
     }
 
     return html` <span class="status-title">Status</span>
@@ -789,11 +792,7 @@ class ArgoViewer extends LitElement {
             !this.recording
               ? html`
                   <md-filled-button
-                    style="
-                  --md-sys-color-primary-container: #7b1fa2;
-                  color: white;
-                  border-radius: 9999px;
-                "
+                    style="color: white; border-radius: 9999px;"
                     ?disabled=${this.actionButtonDisabled ||
                     // @ts-expect-error - TS2339 - Property 'canRecord' does not exist on type 'ArgoViewer'.
                     !this.canRecord}
