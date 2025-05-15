@@ -73,7 +73,6 @@ class ArgoViewer extends LitElement {
         color: #6b6b6b;
       }
 
-      ,
       md-elevated-card {
         display: block;
         margin: 1rem 0;
