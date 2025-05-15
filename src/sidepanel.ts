@@ -94,6 +94,14 @@ class ArgoViewer extends LitElement {
         justify-content: space-between;
       }
 
+      .status-container {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        justify-content: start;
+        margin-bottom: 8px;
+      }
+
       .status-title {
         font-size: 12px;
         font-weight: 500;
@@ -105,14 +113,12 @@ class ArgoViewer extends LitElement {
         font-size: 11px;
         font-weight: 500;
         color: #6b6b6b;
-        margin-bottom: 4px;
       }
 
       .status-page-title {
         font-size: 14px;
         font-weight: 500;
         color: #000;
-        margin-bottom: 8px;
       }
 
       img.favicon {
@@ -122,6 +128,10 @@ class ArgoViewer extends LitElement {
         object-fit: cover;
         border-radius: 4px;
         filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.6));
+      }
+
+      md-icon[filled] {
+        font-variation-settings: "FILL" 1;
       }
     `,
   ];
@@ -605,7 +615,7 @@ class ArgoViewer extends LitElement {
           // @ts-expect-error - TS2339 - Property 'pageUrl' does not exist on type 'ArgoViewer'.
           this.pageTitle
             ? html`
-                <div style="display: flex; align-items: start; gap: 0.5rem;">
+                <div class="status-container">
                   <img
                     src="${
                       // @ts-expect-error - TS2339 - Property 'favIconUrl' does not exist on type 'ArgoViewer'.
@@ -652,7 +662,12 @@ class ArgoViewer extends LitElement {
         ${
           // @ts-expect-error - TS2339 - Property 'status' does not exist on type 'ArgoViewer'. | TS2339 - Property 'status' does not exist on type 'ArgoViewer'.
           !this.status?.numPending
-            ? html`<span class="status-ready">All resources archived</span>`
+            ? html`<div class="status-container">
+                <md-icon filled style="color: var(--md-sys-color-primary);"
+                  >check_circle</md-icon
+                >
+                <span class="status-ready">All resources archived</span>
+              </div>`
             : ""
         }
       </div>`;
