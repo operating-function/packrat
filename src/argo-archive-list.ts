@@ -120,7 +120,7 @@ export class ArgoArchiveList extends LitElement {
       }
 
       .search-result-text b {
-        background-color: #cf7df1;
+        background-color: var(--md-sys-color-secondary-container);
         color: black;
         font-weight: bold;
         padding: 0 2px;
