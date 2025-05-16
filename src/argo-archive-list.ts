@@ -250,6 +250,14 @@ export class ArgoArchiveList extends LitElement {
       {} as Record<string, typeof this.filteredPages>,
     );
 
+    if (!this.filteredPages.length) {
+      return html`
+        <div class="card-container">
+          <p class="md-typescale-body-medium">No results found.</p>
+        </div>
+      `;
+    }
+
     return html`
       <div class="card-container">
         ${Object.entries(groups)
