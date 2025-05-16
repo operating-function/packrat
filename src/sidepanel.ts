@@ -44,7 +44,6 @@ class ArgoViewer extends LitElement {
       .search-container {
         margin: 16px 12px;
         height: 32px;
-        background: #ece7f8;
         border-radius: 9999px;
         display: flex;
         align-items: center;
@@ -101,27 +100,22 @@ class ArgoViewer extends LitElement {
       }
 
       .status-title {
+        display: block;
         font-size: 12px;
         font-weight: 500;
         color: #6b6b6b;
         margin-bottom: 4px;
       }
 
-      .status-ready {
-        font-size: 11px;
-        font-weight: 500;
-        color: #6b6b6b;
-      }
-
-      .status-page-title {
+      .status-content {
         font-size: 14px;
         font-weight: 500;
         color: #000;
       }
 
       img.favicon {
-        width: 20px !important;
-        height: 20px !important;
+        width: var(--md-icon-size) !important;
+        height: var(--md-icon-size) !important;
         flex: 0 0 auto;
         object-fit: cover;
         border-radius: 4px;
@@ -578,7 +572,7 @@ class ArgoViewer extends LitElement {
   }
 
   get notRecordingMessage() {
-    return "Not Archiving this Tab";
+    return "Archiving Disabled";
   }
 
   renderStatusCard() {
@@ -622,7 +616,7 @@ class ArgoViewer extends LitElement {
                     alt="Favicon"
                     class="favicon"
                   />
-                  <span class="status-page-title"
+                  <span class="status-content"
                     >${
                       //@ts-expect-error - TS2339 - Property 'pageTitle' does not exist on type 'ArgoViewer'.
                       truncateString(this.pageTitle)
@@ -664,7 +658,7 @@ class ArgoViewer extends LitElement {
                 <md-icon filled style="color: var(--md-sys-color-primary);"
                   >check_circle</md-icon
                 >
-                <span class="status-ready">All resources archived</span>
+                <span class="status-content">All resources archived</span>
               </div>`
             : ""
         }
@@ -708,7 +702,9 @@ class ArgoViewer extends LitElement {
       if (this.pageUrl?.startsWith(this.extRoot)) {
         return html`
           <span class="status-title">Status</span>
-          <p class="is-size-7">This page is part of the extension.</p>
+          <p class="is-size-7 status-content">
+            This page is part of the extension.
+          </p>
         `;
       }
 
@@ -717,7 +713,7 @@ class ArgoViewer extends LitElement {
           <md-icon filled style="color: var(--md-sys-color-secondary)"
             >folder_off</md-icon
           >
-          <span class="status-ready">Can't archive this page.</span>
+          <span class="status-content">Can't archive this page.</span>
         </div>`;
     }
 
@@ -728,15 +724,21 @@ class ArgoViewer extends LitElement {
           <md-icon filled style="color: var(--md-sys-color-secondary)"
             >folder_off</md-icon
           >
-          <span class="status-ready"
+          <span class="status-content"
             >Archiving will start after the page reloads...</span
           >
         </div>`;
     }
 
-    return html` <span class="status-title">Status</span>
-      <br />
-      <p>${this.notRecordingMessage}</p>`;
+    return html`
+      <span class="status-title">Status</span>
+      <div class="status-container">
+        <md-icon filled style="color: var(--md-sys-color-secondary)"
+          >folder_off</md-icon
+        >
+        <span class="status-content">${this.notRecordingMessage}</span>
+      </div>
+    `;
   }
 
   renderSearch() {
