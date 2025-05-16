@@ -123,7 +123,7 @@ class ArgoViewer extends LitElement {
       }
 
       md-icon[filled] {
-        font-variation-settings: "FILL" 1;
+        font-variation-settings: 'FILL' 1;
       }
     `,
   ];
