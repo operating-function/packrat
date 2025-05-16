@@ -61,6 +61,15 @@ export class ArgoArchiveList extends LitElement {
         --md-list-item-one-line-container-height: 0px;
       }
 
+      .md-badge {
+        display: block;
+        background-color: var(--md-sys-color-primary);
+        color: var(--md-sys-color-on-primary);
+        font-size: var(--md-sys-typescale-label-small);
+        border-radius: 999px;
+        padding: 2px 6px;
+      }
+
       .leading-group {
         display: flex;
         gap: 0px;
@@ -278,6 +287,9 @@ export class ArgoArchiveList extends LitElement {
                     <md-icon class="arrow-right">chevron_right</md-icon>
                     <md-icon class="arrow-down">expand_more</md-icon>
                     <span class="md-typescale-label-large">${dateLabel}</span>
+                    ${this.filterQuery
+                      ? html`<span class="md-badge">${pages.length}</span>`
+                      : ""}
                   </summary>
                   <md-list>
                     ${(pages || [])
