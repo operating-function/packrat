@@ -1,5 +1,5 @@
-import { LitElement, html, css, CSSResultGroup } from "lit";
-import { customElement, state } from "lit/decorators.js";
+import { LitElement, html, css, CSSResultGroup, PropertyValues } from "lit";
+import { customElement, state, property } from "lit/decorators.js";
 import { styles as typescaleStyles } from "@material/web/typography/md-typescale-styles.js";
 
 import "@material/web/list/list.js";
@@ -9,6 +9,7 @@ import "@material/web/icon/icon.js";
 import "@material/web/labs/card/elevated-card.js";
 
 import { getLocalOption } from "./localstorage";
+import { Index as FlexIndex } from "flexsearch";
 
 @customElement("argo-archive-list")
 export class ArgoArchiveList extends LitElement {
@@ -109,6 +110,22 @@ export class ArgoArchiveList extends LitElement {
         flex-shrink: 0;
         text-decoration: none;
       }
+      .search-result-text {
+        width: 100%;
+        padding-left: 14px;
+        padding-right: 12px;
+        padding-top: 4px;
+        padding-bottom: 12px;
+        box-sizing: border-box;
+      }
+
+      .search-result-text b {
+        background-color: #cf7df1;
+        color: black;
+        font-weight: bold;
+        padding: 0 2px;
+        border-radius: 2px;
+      }
     `,
   ];
 
@@ -118,9 +135,54 @@ export class ArgoArchiveList extends LitElement {
     url: string;
     title?: string;
     favIconUrl?: string;
+    text?: string;
   }> = [];
   @state() private collId = "";
   @state() private selectedPages = new Set<string>();
+  @state() private filteredPages = [] as typeof this.pages;
+
+  @property({ type: String }) filterQuery = "";
+  private flex: FlexIndex<string> = new FlexIndex<string>({
+    tokenize: "forward",
+    resolution: 3,
+  });
+
+  protected updated(changed: PropertyValues) {
+    super.updated(changed);
+
+    // 2) Rebuild the index when the raw pages change:
+    if (changed.has("pages")) {
+      this.flex = new FlexIndex<string>({
+        tokenize: "forward",
+        resolution: 3,
+      });
+      this.pages.forEach((p) => {
+        // include title + text (and URL if you like)
+
+        const toIndex = [p.title ?? "", p.text ?? ""].join(" ");
+        this.flex.add(p.ts, toIndex);
+      });
+    }
+
+    // 3) Whenever pages or the query change, recompute filteredPages:
+    if (changed.has("pages") || changed.has("filterQuery")) {
+      if (!this.filterQuery.trim()) {
+        this.filteredPages = [...this.pages];
+      } else {
+        // partial matches on title/text via the “match” preset
+        const matches = this.flex.search(this.filterQuery) as string[];
+        this.filteredPages = this.pages.filter((p) => matches.includes(p.ts));
+      }
+    }
+  }
+
+  private buildIndex() {
+    this.flex = new FlexIndex();
+    this.pages.forEach((p) => {
+      const text = p.url + (p.title ? ` ${p.title}` : "");
+      this.flex.add(p.ts, text); // use ts (timestamp) as a unique id
+    });
+  }
 
   private togglePageSelection(ts: string) {
     const next = new Set(this.selectedPages);
@@ -155,18 +217,37 @@ export class ArgoArchiveList extends LitElement {
     });
   }
 
+  private _highlightMatch(
+    text?: string,
+    query: string = "",
+    maxLen = 180,
+  ): string {
+    if (!text) return "";
+
+    const safeQuery = query.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const regex = new RegExp(safeQuery, "ig");
+
+    const matchIndex = text.search(regex);
+    if (matchIndex === -1) return text.slice(0, maxLen) + "...";
+
+    const previewStart = Math.max(0, matchIndex - 30);
+    const preview = text.slice(previewStart, previewStart + maxLen);
+
+    return preview.replace(regex, (m) => `<b>${m}</b>`) + "...";
+  }
+
   render() {
     if (!this.pages.length) {
       return html`<p class="md-typescale-body-medium">No archives yet.</p>`;
     }
 
-    const groups = this.pages.reduce(
+    const groups = this.filteredPages.reduce(
       (acc, page) => {
         const key = this._formatDate(new Date(Number(page.ts)));
         (acc[key] ||= []).push(page);
         return acc;
       },
-      {} as Record<string, typeof this.pages>,
+      {} as Record<string, typeof this.filteredPages>,
     );
 
     return html`
@@ -226,6 +307,20 @@ export class ArgoArchiveList extends LitElement {
                               >
                             </div>
                           </md-list-item>
+                          ${this.filterQuery && page.text
+                            ? html`
+                                <div
+                                  class="search-result-text md-typescale-body-small"
+                                >
+                                  <span
+                                    .innerHTML=${this._highlightMatch(
+                                      page.text,
+                                      this.filterQuery,
+                                    )}
+                                  ></span>
+                                </div>
+                              `
+                            : ""}
                         `;
                       })}
                   </md-list>
@@ -254,15 +349,28 @@ export class ArgoArchiveList extends LitElement {
     return label;
   }
 
-  private _openPage(page: { ts: string; url: string }) {
+  private async _openPage(page: { ts: string; url: string }) {
     const tsParam = new Date(Number(page.ts))
       .toISOString()
       .replace(/[-:TZ.]/g, "");
     const urlEnc = encodeURIComponent(page.url);
     const fullUrl =
-      `${chrome.runtime.getURL("index.html")}?source=local://${
-        this.collId
-      }&url=${urlEnc}` + `#view=pages&url=${urlEnc}&ts=${tsParam}`;
-    chrome.tabs.create({ url: fullUrl });
+      `${chrome.runtime.getURL("index.html")}?source=local://${this.collId}` +
+      `&url=${urlEnc}#view=pages&url=${urlEnc}&ts=${tsParam}`;
+
+    const extensionUrlPrefix = chrome.runtime.getURL("index.html");
+
+    // Check if any existing tab already displays the archive viewer
+    const tabs = await chrome.tabs.query({});
+    // @ts-expect-error - t implicitly has an 'any' type
+    const viewerTab = tabs.find((t) => t.url?.startsWith(extensionUrlPrefix));
+
+    if (viewerTab && viewerTab.id) {
+      // Reuse the existing tab
+      chrome.tabs.update(viewerTab.id, { url: fullUrl, active: true });
+    } else {
+      // Fallback: open a new tab
+      chrome.tabs.create({ url: fullUrl });
+    }
   }
 }
