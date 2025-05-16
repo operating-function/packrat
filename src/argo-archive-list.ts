@@ -26,6 +26,14 @@ export class ArgoArchiveList extends LitElement {
         padding: 0 1rem;
       }
 
+      .center-flex-container {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
       md-elevated-card > details {
         border-radius: inherit;
         overflow: hidden;
@@ -252,7 +260,7 @@ export class ArgoArchiveList extends LitElement {
 
     if (!this.filteredPages.length) {
       return html`
-        <div class="card-container">
+        <div class="card-container center-flex-container">
           <p class="md-typescale-body-medium">No results found.</p>
         </div>
       `;
