@@ -725,7 +725,7 @@ class ArgoViewer extends LitElement {
             >folder_off</md-icon
           >
           <span class="status-content"
-            >Archiving will start after the page reloads...</span
+            >Archiving will start after page reloads…</span
           >
         </div>`;
     }
@@ -816,11 +816,10 @@ class ArgoViewer extends LitElement {
                 `
               : html`
                   <md-outlined-button
-                    style="--md-sys-color-primary: #b00020; --md-sys-color-outline: #b00020; border-radius: 9999px;"
                     ?disabled=${this.actionButtonDisabled}
                     @click=${this.onStop}
                   >
-                    <md-icon slot="icon" style="color:#b00020">pause</md-icon>
+                    <md-icon slot="icon">pause</md-icon>
                     Pause Archiving
                   </md-outlined-button>
                 `
