@@ -44,7 +44,6 @@ class ArgoViewer extends LitElement {
       .search-container {
         margin: 16px 12px;
         height: 32px;
-        background: #ece7f8;
         border-radius: 9999px;
         display: flex;
         align-items: center;
@@ -53,8 +52,6 @@ class ArgoViewer extends LitElement {
 
       .search-field {
         width: 100%;
-        --md-filled-text-field-container-color: transparent;
-        --md-ref-shape-corner-radius: 9999px;
         overflow: hidden;
       }
 
@@ -94,34 +91,39 @@ class ArgoViewer extends LitElement {
         justify-content: space-between;
       }
 
+      .status-container {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        justify-content: start;
+        margin-bottom: 8px;
+      }
+
       .status-title {
+        display: block;
         font-size: 12px;
         font-weight: 500;
         color: #6b6b6b;
         margin-bottom: 4px;
       }
 
-      .status-ready {
-        font-size: 11px;
-        font-weight: 500;
-        color: #6b6b6b;
-        margin-bottom: 4px;
-      }
-
-      .status-page-title {
+      .status-content {
         font-size: 14px;
         font-weight: 500;
         color: #000;
-        margin-bottom: 8px;
       }
 
       img.favicon {
-        width: 20px !important;
-        height: 20px !important;
+        width: var(--md-icon-size) !important;
+        height: var(--md-icon-size) !important;
         flex: 0 0 auto;
         object-fit: cover;
         border-radius: 4px;
         filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.6));
+      }
+
+      md-icon[filled] {
+        font-variation-settings: "FILL" 1;
       }
     `,
   ];
@@ -570,7 +572,7 @@ class ArgoViewer extends LitElement {
   }
 
   get notRecordingMessage() {
-    return "Not Archiving this Tab";
+    return "Archiving Disabled";
   }
 
   renderStatusCard() {
@@ -605,7 +607,7 @@ class ArgoViewer extends LitElement {
           // @ts-expect-error - TS2339 - Property 'pageUrl' does not exist on type 'ArgoViewer'.
           this.pageTitle
             ? html`
-                <div style="display: flex; align-items: start; gap: 0.5rem;">
+                <div class="status-container">
                   <img
                     src="${
                       // @ts-expect-error - TS2339 - Property 'favIconUrl' does not exist on type 'ArgoViewer'.
@@ -614,7 +616,7 @@ class ArgoViewer extends LitElement {
                     alt="Favicon"
                     class="favicon"
                   />
-                  <span class="status-page-title"
+                  <span class="status-content"
                     >${
                       //@ts-expect-error - TS2339 - Property 'pageTitle' does not exist on type 'ArgoViewer'.
                       truncateString(this.pageTitle)
@@ -644,7 +646,7 @@ class ArgoViewer extends LitElement {
                     // @ts-expect-error - TS2339 - Property 'status' does not exist on type 'ArgoViewer'.
                     this.status?.numPending || 0,
                   )}
-                  style="--md-sys-color-primary: #7b1fa2; width: 100%; margin-bottom: 0.5rem;"
+                  style="width: 100%; margin-bottom: 0.5rem;"
                 ></md-linear-progress>
               `
             : ""
@@ -652,7 +654,12 @@ class ArgoViewer extends LitElement {
         ${
           // @ts-expect-error - TS2339 - Property 'status' does not exist on type 'ArgoViewer'. | TS2339 - Property 'status' does not exist on type 'ArgoViewer'.
           !this.status?.numPending
-            ? html`<span class="status-ready">All resources archived</span>`
+            ? html`<div class="status-container">
+                <md-icon filled style="color: var(--md-sys-color-primary);"
+                  >check_circle</md-icon
+                >
+                <span class="status-content">All resources archived</span>
+              </div>`
             : ""
         }
       </div>`;
@@ -695,30 +702,43 @@ class ArgoViewer extends LitElement {
       if (this.pageUrl?.startsWith(this.extRoot)) {
         return html`
           <span class="status-title">Status</span>
-          <p class="is-size-7">
-            This page is part of the extension. You can view existing archived
-            items from here. To start a new archiving session, click the
-            <wr-icon .src="${wrRec}"></wr-icon> Start Archiving button and enter
-            a new URL.
+          <p class="is-size-7 status-content">
+            This page is part of the extension.
           </p>
         `;
       }
 
       return html` <span class="status-title">Status</span>
-        <br />
-        <p>Can't archive this page.</p>`;
+        <div class="status-container">
+          <md-icon filled style="color: var(--md-sys-color-secondary)"
+            >folder_off</md-icon
+          >
+          <span class="status-content">Can't archive this page.</span>
+        </div>`;
     }
 
     // @ts-expect-error - TS2339 - Property 'waitingForStart' does not exist on type 'ArgoViewer'.
     if (this.waitingForStart) {
       return html` <span class="status-title">Status</span>
-        <br />
-        <p>Archiving will start after the page reloads...</p>`;
+        <div class="status-container">
+          <md-icon filled style="color: var(--md-sys-color-secondary)"
+            >folder_off</md-icon
+          >
+          <span class="status-content"
+            >Archiving will start after page reloads…</span
+          >
+        </div>`;
     }
 
-    return html` <span class="status-title">Status</span>
-      <br />
-      <p>${this.notRecordingMessage}</p>`;
+    return html`
+      <span class="status-title">Status</span>
+      <div class="status-container">
+        <md-icon filled style="color: var(--md-sys-color-secondary)"
+          >folder_off</md-icon
+        >
+        <span class="status-content">${this.notRecordingMessage}</span>
+      </div>
+    `;
   }
 
   renderSearch() {
@@ -774,11 +794,7 @@ class ArgoViewer extends LitElement {
             !this.recording
               ? html`
                   <md-filled-button
-                    style="
-                  --md-sys-color-primary-container: #7b1fa2;
-                  color: white;
-                  border-radius: 9999px;
-                "
+                    style="color: white; border-radius: 9999px;"
                     ?disabled=${this.actionButtonDisabled ||
                     // @ts-expect-error - TS2339 - Property 'canRecord' does not exist on type 'ArgoViewer'.
                     !this.canRecord}
@@ -800,11 +816,10 @@ class ArgoViewer extends LitElement {
                 `
               : html`
                   <md-outlined-button
-                    style="--md-sys-color-primary: #b00020; --md-sys-color-outline: #b00020; border-radius: 9999px;"
                     ?disabled=${this.actionButtonDisabled}
                     @click=${this.onStop}
                   >
-                    <md-icon slot="icon" style="color:#b00020">pause</md-icon>
+                    <md-icon slot="icon">pause</md-icon>
                     Pause Archiving
                   </md-outlined-button>
                 `
