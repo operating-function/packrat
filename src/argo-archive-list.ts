@@ -215,6 +215,10 @@ export class ArgoArchiveList extends LitElement {
     return this.pages.filter((p) => this.selectedPages.has(p.ts));
   }
 
+  public getAllPages() {
+    return this.pages;
+  }
+
   async connectedCallback() {
     super.connectedCallback();
     this.collId = (await getLocalOption("defaultCollId")) || "";
