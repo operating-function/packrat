@@ -112,6 +112,13 @@ class ArgoViewer extends LitElement {
         color: #000;
       }
 
+      .status-divider {
+        width: 100%;
+        margin: 0.5rem 0;
+        border: none;
+        border-top: 1px solid #e0e0e0;
+      }
+
       img.favicon {
         width: var(--md-icon-size) !important;
         height: var(--md-icon-size) !important;
@@ -226,6 +233,23 @@ class ArgoViewer extends LitElement {
     return "";
   }
 
+  private getCurrentPage() {
+    const sameUrls = this.archiveList
+      ?.getAllPages()
+      // @ts-expect-error - TS2339 - Property 'pageUrl' does not exist on type 'ArgoViewer'.
+      .filter((p) => p.url === this.pageUrl);
+    if (!sameUrls || !sameUrls.length) {
+      return null;
+    }
+
+    // Sort by timestamp (newest first)
+    return sameUrls.sort((a, b) => {
+      const tsA = parseInt(a.ts, 10);
+      const tsB = parseInt(b.ts, 10);
+      return tsB - tsA; // Descending order (newest first)
+    })[0];
+  }
+
   private async onDownload() {
     const selectedPages = this.archiveList?.getSelectedPages?.() || [];
     if (!selectedPages.length) {
@@ -276,19 +300,33 @@ class ArgoViewer extends LitElement {
     console.log("WACZ file downloaded:", filename);
   }
 
-  private async onShare() {
+  private async onShareSelected() {
     const selectedPages = this.archiveList?.getSelectedPages?.() || [];
     if (!selectedPages.length) {
       alert("Please select some pages to share.");
       return;
     }
-
     console.log("Selected pages to share:", selectedPages);
+    await this.onShare(selectedPages);
+  }
 
+  private async onShareCurrent() {
+    const currentPage = this.getCurrentPage?.() || null;
+    if (!currentPage) {
+      alert("No current page to share.");
+      return;
+    }
+    console.log("Current page to share:", currentPage);
+    await this.onShare([currentPage]);
+  }
+
+  // @ts-expect-error - TS7006 - Parameter 'pages' implicitly has an 'any' type.
+  private async onShare(pages) {
     const defaultCollId = (await getLocalOption("defaultCollId")) || "";
     const coll = await collLoader.loadColl(defaultCollId);
 
-    const pageTsList = selectedPages.map((p) => p.id);
+    // @ts-expect-error - TS7006 - Parameter 'p' implicitly has an 'any' type.
+    const pageTsList = pages.map((p) => p.id);
     const format = "wacz";
     const filename = `archive-${Date.now()}.wacz`;
 
@@ -654,13 +692,21 @@ class ArgoViewer extends LitElement {
         }
         ${
           // @ts-expect-error - TS2339 - Property 'status' does not exist on type 'ArgoViewer'. | TS2339 - Property 'status' does not exist on type 'ArgoViewer'.
-          !this.status?.numPending
+          !this.status?.numPending && this.pageUrl
             ? html`<div class="status-container">
-                <md-icon filled style="color: var(--md-sys-color-primary);"
-                  >check_circle</md-icon
+                  <md-icon filled style="color: var(--md-sys-color-primary);"
+                    >check_circle</md-icon
+                  >
+                  <span class="status-content">All resources archived</span>
+                </div>
+                <hr class="status-divider" />
+                <md-filled-button
+                  style="color: white; border-radius: 9999px; align-self: flex-end;"
+                  @click=${this.onShareCurrent}
                 >
-                <span class="status-content">All resources archived</span>
-              </div>`
+                  <md-icon slot="icon" style="color:white">share</md-icon>
+                  Share Current Page
+                </md-filled-button> `
             : ""
         }
       </div>`;
@@ -828,7 +874,10 @@ class ArgoViewer extends LitElement {
                     <md-icon style="color: gray;">download</md-icon>
                   </md-icon-button>
 
-                  <md-icon-button aria-label="Share" @click=${this.onShare}>
+                  <md-icon-button
+                    aria-label="Share"
+                    @click=${this.onShareSelected}
+                  >
                     <md-icon style="color: gray;">share</md-icon>
                   </md-icon-button>
                 `
