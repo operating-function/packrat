@@ -8,6 +8,8 @@ import "@material/web/checkbox/checkbox.js";
 import "@material/web/icon/icon.js";
 import "@material/web/labs/card/elevated-card.js";
 
+import filingDrawer from "assets/images/filing-drawer.avif";
+
 import { getLocalOption } from "./localstorage";
 import { Index as FlexIndex } from "flexsearch";
 
@@ -24,6 +26,12 @@ export class ArgoArchiveList extends LitElement {
       }
       .card-container {
         padding: 0 1rem;
+      }
+
+      .center-flex-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
 
       md-elevated-card > details {
@@ -51,6 +59,15 @@ export class ArgoArchiveList extends LitElement {
         --md-list-item-trailing-space: 12px;
 
         --md-list-item-one-line-container-height: 0px;
+      }
+
+      .md-badge {
+        display: block;
+        background-color: var(--md-sys-color-primary);
+        color: var(--md-sys-color-on-primary);
+        font-size: var(--md-sys-typescale-label-small);
+        border-radius: 999px;
+        padding: 2px 6px;
       }
 
       .leading-group {
@@ -120,11 +137,28 @@ export class ArgoArchiveList extends LitElement {
       }
 
       .search-result-text b {
-        background-color: #cf7df1;
+        background-color: var(--md-sys-color-secondary-container);
         color: black;
         font-weight: bold;
         padding: 0 2px;
         border-radius: 2px;
+      }
+
+      .search-error-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-top: 5rem;
+
+        & img {
+          width: 100%;
+          max-width: 128px;
+          margin-bottom: 1rem;
+        }
+
+        & p {
+          margin: 0 0 0.5rem 0;
+        }
       }
     `,
   ];
@@ -242,7 +276,17 @@ export class ArgoArchiveList extends LitElement {
 
   render() {
     if (!this.pages.length) {
-      return html`<p class="md-typescale-body-medium">No archives yet.</p>`;
+      return html`
+        <div class="card-container center-flex-container">
+          <div class="search-error-container">
+            <img src=${filingDrawer} />
+            <p class="md-typescale-body-large">No archives yet</p>
+            <p class="md-typescale-body-small">
+              Pages you visit with archiving enabled will show up here
+            </p>
+          </div>
+        </div>
+      `;
     }
 
     const groups = this.filteredPages.reduce(
@@ -253,6 +297,20 @@ export class ArgoArchiveList extends LitElement {
       },
       {} as Record<string, typeof this.filteredPages>,
     );
+
+    if (!this.filteredPages.length) {
+      return html`
+        <div class="card-container center-flex-container">
+          <div class="search-error-container">
+            <img src=${filingDrawer} />
+            <p class="md-typescale-body-large">No results found</p>
+            <p class="md-typescale-body-small">
+              Try searching for something else
+            </p>
+          </div>
+        </div>
+      `;
+    }
 
     return html`
       <div class="card-container">
@@ -266,6 +324,9 @@ export class ArgoArchiveList extends LitElement {
                     <md-icon class="arrow-right">chevron_right</md-icon>
                     <md-icon class="arrow-down">expand_more</md-icon>
                     <span class="md-typescale-label-large">${dateLabel}</span>
+                    ${this.filterQuery
+                      ? html`<span class="md-badge">${pages.length}</span>`
+                      : ""}
                   </summary>
                   <md-list>
                     ${(pages || [])

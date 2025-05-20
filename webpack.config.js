@@ -51,6 +51,10 @@ const moduleSettings = {
       test: /(dist\/wombat.js|src\/wombatWorkers.js|behaviors.js|extractPDF.js|ruffle.js|index.html)$/i,
       use: "raw-loader",
     },
+    {
+      test: /\.(png|jpe?g|gif|avif)$/i,
+      type: 'asset/resource',
+    },
   ],
 };
 
@@ -68,7 +72,9 @@ const optimization = {
 const resolve = {
   extensions: [".ts", ".js"],
   plugins: [new TsconfigPathsPlugin()],
-  alias: {},
+  alias: {
+    assets: path.resolve(__dirname, 'src/assets/'),
+  },
   fallback: {
     crypto: false,
     stream: require.resolve("stream-browserify"),
