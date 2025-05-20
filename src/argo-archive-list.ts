@@ -8,6 +8,8 @@ import "@material/web/checkbox/checkbox.js";
 import "@material/web/icon/icon.js";
 import "@material/web/labs/card/elevated-card.js";
 
+import filingDrawer from "assets/images/filing-drawer.avif";
+
 import { getLocalOption } from "./localstorage";
 import { Index as FlexIndex } from "flexsearch";
 
@@ -27,8 +29,6 @@ export class ArgoArchiveList extends LitElement {
       }
 
       .center-flex-container {
-        width: 100%;
-        height: 100%;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -142,6 +142,23 @@ export class ArgoArchiveList extends LitElement {
         font-weight: bold;
         padding: 0 2px;
         border-radius: 2px;
+      }
+
+      .search-error-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-top: 5rem;
+
+        & img {
+          width: 100%;
+          max-width: 128px;
+          margin-bottom: 1rem;
+        }
+
+        & p {
+          margin: 0 0 0.5rem 0;
+        }
       }
     `,
   ];
@@ -259,7 +276,17 @@ export class ArgoArchiveList extends LitElement {
 
   render() {
     if (!this.pages.length) {
-      return html`<p class="md-typescale-body-medium">No archives yet.</p>`;
+      return html`
+        <div class="card-container center-flex-container">
+          <div class="search-error-container">
+            <img src=${filingDrawer} />
+            <p class="md-typescale-body-large">No archives yet</p>
+            <p class="md-typescale-body-small">
+              Pages you visit with archiving enabled will show up here
+            </p>
+          </div>
+        </div>
+      `;
     }
 
     const groups = this.filteredPages.reduce(
@@ -274,7 +301,13 @@ export class ArgoArchiveList extends LitElement {
     if (!this.filteredPages.length) {
       return html`
         <div class="card-container center-flex-container">
-          <p class="md-typescale-body-medium">No results found.</p>
+          <div class="search-error-container">
+            <img src=${filingDrawer} />
+            <p class="md-typescale-body-large">No results found</p>
+            <p class="md-typescale-body-small">
+              Try searching for something else
+            </p>
+          </div>
         </div>
       `;
     }
