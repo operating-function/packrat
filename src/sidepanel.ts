@@ -830,6 +830,7 @@ class ArgoViewer extends LitElement {
         style="flex: 1; overflow-y: auto; position: relative; flex-grow: 1;"
       >
         <div id="my-archives" class="tab-panel" active>
+          ${this.renderStatusCard()}
           <argo-archive-list
             id="archive-list"
             .filterQuery=${
@@ -847,7 +848,7 @@ class ArgoViewer extends LitElement {
 
   render() {
     return html`
-      ${this.renderSearch()} ${this.renderStatusCard()} ${this.renderTabs()}
+      ${this.renderSearch()} ${this.renderTabs()}
       <div style="height: 72px; width: 100%;">
         <md-divider></md-divider>
         <div
