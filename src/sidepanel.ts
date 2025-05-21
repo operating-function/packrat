@@ -838,8 +838,6 @@ class ArgoViewer extends LitElement {
         // @ts-expect-error - TS2339 - Property 'selectedCount' does not exist on type 'ArgoViewer'.
         this.selectedCount > 0
           ? html`
-              <!-- ─── BULK-ACTION BAR (exact same icons as bottom) ─── -->
-
               <div
                 style="display:flex; align-items:center; justify-content:space-between; padding: 0.25rem 1rem;"
               >

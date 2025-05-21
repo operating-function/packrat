@@ -116,11 +116,7 @@ function sidepanelHandler(port) {
         }
         const coll = await collLoader.loadColl(defaultCollId);
 
-        // delete each page from the local store
         for (const id of message.pageIds) {
-          // swlib’s store.deletePage (or similar) removes it.
-          // If your API is identical to ReplayWeb.page’s HTTP API:
-          // DELETE `${this.collInfo.apiPrefix}/page/${id}` :contentReference[oaicite:0]{index=0}
           await coll.store.deletePage(id);
         }
 
