@@ -8,8 +8,6 @@ import "@material/web/icon/icon.js";
 import { ArgoArchiveList } from "./argo-archive-list";
 import { Downloader } from "./sw/downloader";
 
-import wrRec from "./assets/icons/recLogo.svg";
-
 import {
   getLocalOption,
   // removeLocalOption,
@@ -429,22 +427,42 @@ class ArgoViewer extends LitElement {
     });
   }
 
-  registerMessages() {
-    // @ts-expect-error - TS2339 - Property 'port' does not exist on type 'ArgoViewer'.
+  private connectPort() {
+    // if already connected, do nothing
+    // @ts-expect-error
+    if (this.port) return;
+    // @ts-expect-error
     this.port = chrome.runtime.connect({ name: "sidepanel-port" });
-
-    this.updateTabInfo();
-
-    // @ts-expect-error - TS2339 - Property 'port' does not exist on type 'ArgoViewer'.
-    this.port.onMessage.addListener((message) => {
-      this.onMessage(message);
+    // @ts-expect-error
+    this.port.onMessage.addListener((msg) => this.onMessage(msg));
+    // @ts-expect-error
+    this.port.onDisconnect.addListener(() => {
+      // clear so next sendMessage() will reconnect
+      console.warn("Port disconnected, will reconnect on next send.");
+      // @ts-expect-error
+      this.port = null;
     });
   }
 
-  // @ts-expect-error - TS7006 - Parameter 'message' implicitly has an 'any' type.
-  sendMessage(message) {
-    // @ts-expect-error - TS2339 - Property 'port' does not exist on type 'ArgoViewer'.
-    this.port.postMessage(message);
+  registerMessages() {
+    this.connectPort();
+    this.updateTabInfo();
+  }
+
+  private sendMessage(message: any) {
+    // reconnect if needed
+    // @ts-expect-error
+    if (!this.port) this.connectPort();
+    try {
+      // @ts-expect-error
+      this.port!.postMessage(message);
+    } catch (e) {
+      console.warn(
+        "Port died while sending, retrying via chrome.runtime.sendMessage",
+        e,
+      );
+      chrome.runtime.sendMessage(message);
+    }
   }
   // @ts-expect-error - TS7006 - Parameter 'message' implicitly has an 'any' type.
   async onMessage(message) {
