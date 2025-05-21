@@ -210,12 +210,16 @@ export class ArgoArchiveList extends LitElement {
     }
   }
 
-  private buildIndex() {
-    this.flex = new FlexIndex();
-    this.pages.forEach((p) => {
-      const text = p.url + (p.title ? ` ${p.title}` : "");
-      this.flex.add(p.ts, text); // use ts (timestamp) as a unique id
-    });
+  public clearSelection() {
+    this.selectedPages = new Set();
+    this.requestUpdate();
+    this.dispatchEvent(
+      new CustomEvent("selection-change", {
+        detail: { count: 0 },
+        bubbles: true,
+        composed: true,
+      }),
+    );
   }
 
   private togglePageSelection(ts: string) {
@@ -226,6 +230,13 @@ export class ArgoArchiveList extends LitElement {
       next.add(ts);
     }
     this.selectedPages = next;
+    this.dispatchEvent(
+      new CustomEvent("selection-change", {
+        detail: { count: this.selectedPages.size },
+        bubbles: true,
+        composed: true,
+      }),
+    );
   }
 
   public getSelectedPages() {
@@ -342,6 +353,7 @@ export class ArgoArchiveList extends LitElement {
                               <md-checkbox
                                 slot="start"
                                 touch-target="wrapper"
+                                .checked=${this.selectedPages.has(page.ts)}
                                 @click=${(e: Event) => {
                                   e.stopPropagation();
                                   this.togglePageSelection(page.ts);

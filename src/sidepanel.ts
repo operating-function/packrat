@@ -137,6 +137,8 @@ class ArgoViewer extends LitElement {
   private archiveList!: ArgoArchiveList;
   constructor() {
     super();
+    // @ts-expect-error - TS2339 - Property 'selectedCount' does not exist on type 'ArgoViewer'.
+    this.selectedCount = 0;
     // @ts-expect-error - TS2339 - Property 'searchQuery' does not exist on type 'ArgoViewer'.
     this.searchQuery = "";
     // @ts-expect-error - TS2339 - Property 'collections' does not exist on type 'ArgoViewer'.
@@ -193,6 +195,7 @@ class ArgoViewer extends LitElement {
   static get properties() {
     return {
       searchQuery: { type: String },
+      selectedCount: { type: Number },
       collections: { type: Array },
       collId: { type: String },
       collTitle: { type: String },
@@ -248,6 +251,16 @@ class ArgoViewer extends LitElement {
       const tsB = parseInt(b.ts, 10);
       return tsB - tsA; // Descending order (newest first)
     })[0];
+  }
+
+  onDeleteSelected() {
+    const pages = this.archiveList.getSelectedPages();
+    const ids = pages.map((p) => p.id);
+    this.sendMessage({ type: "deletePages", pageIds: ids });
+    // then clear UI
+    this.archiveList.clearSelection();
+    // @ts-expect-error - TS2339 - Property 'selectedCount' does not exist on type 'ArgoViewer'.
+    this.selectedCount = 0;
   }
 
   private async onDownload() {
@@ -389,7 +402,7 @@ class ArgoViewer extends LitElement {
   }
 
   firstUpdated() {
-    this.archiveList = this.shadowRoot?.getElementById(
+    this.archiveList = this.shadowRoot!.getElementById(
       "archive-list",
     ) as ArgoArchiveList;
 
@@ -438,6 +451,11 @@ class ArgoViewer extends LitElement {
     switch (message.type) {
       case "update":
         this.updateTabInfo();
+        break;
+
+      case "pages":
+        // @ts-expect-error — pages is internal to the list
+        this.archiveList.pages = message.pages;
         break;
       case "status":
         // @ts-expect-error - TS2339 - Property 'tabId' does not exist on type 'ArgoViewer'.
@@ -816,25 +834,92 @@ class ArgoViewer extends LitElement {
 
   renderTabs() {
     return html`
-      <md-tabs id="tabs" aria-label="Archive tabs">
-        <md-primary-tab class="md-typescale-label-large"
-          >My Archives</md-primary-tab
-        >
-        <md-primary-tab class="md-typescale-label-large"
-          >My Shared Archives</md-primary-tab
-        >
-      </md-tabs>
+      ${
+        // @ts-expect-error - TS2339 - Property 'selectedCount' does not exist on type 'ArgoViewer'.
+        this.selectedCount > 0
+          ? html`
+              <!-- ─── BULK-ACTION BAR (exact same icons as bottom) ─── -->
 
+              <div
+                style="display:flex; align-items:center; justify-content:space-between; padding: 0.25rem 1rem;"
+              >
+                <div style="display:flex; align-items:center; gap: 0.5rem;">
+                  <!-- Deselect All -->
+                  <md-icon-button
+                    aria-label="Deselect All"
+                    @click=${() => {
+                      this.archiveList.clearSelection();
+                      // @ts-expect-error
+                      this.selectedCount = 0;
+                    }}
+                  >
+                    <md-icon style="color: gray">clear</md-icon>
+                  </md-icon-button>
+
+                  <span class="md-typescale-body-small"
+                    >${
+                      // @ts-expect-error - TS2339 - Property 'selectedCount' does not exist on type 'ArgoViewer'.
+                      this.selectedCount
+                    }
+                    selected</span
+                  >
+                </div>
+
+                <!-- Download -->
+                <div style="display:flex; align-items:center; gap: 0.5rem;">
+                  <md-icon-button
+                    aria-label="Download"
+                    @click=${this.onDownload}
+                  >
+                    <md-icon style="color: gray">download</md-icon>
+                  </md-icon-button>
+
+                  <!-- Share -->
+                  <md-icon-button
+                    aria-label="Share"
+                    @click=${this.onShareSelected}
+                  >
+                    <md-icon style="color: gray">share</md-icon>
+                  </md-icon-button>
+
+                  <!-- Delete -->
+                  <md-icon-button
+                    aria-label="Delete"
+                    @click=${this.onDeleteSelected}
+                  >
+                    <md-icon style="color: gray">delete</md-icon>
+                  </md-icon-button>
+                </div>
+              </div>
+              <md-divider></md-divider>
+            `
+          : html`
+              <!-- ─── NORMAL TABS BAR ─── -->
+              <md-tabs id="tabs" aria-label="Archive tabs">
+                <md-primary-tab class="md-typescale-label-large"
+                  >My Archives</md-primary-tab
+                >
+                <md-primary-tab class="md-typescale-label-large"
+                  >My Shared Archives</md-primary-tab
+                >
+              </md-tabs>
+            `
+      }
+
+      <!-- ─── PANELS ─── -->
       <div
         class="tab-panels"
-        style="flex: 1; overflow-y: auto; position: relative; flex-grow: 1;"
+        style="flex:1; overflow-y:auto; position:relative; flex-grow:1;"
+        @selection-change=${(e: CustomEvent) =>
+          // @ts-expect-error - TS2339 - Property 'selectedCount' does not exist on type 'ArgoViewer'.
+          (this.selectedCount = e.detail.count)}
       >
         <div id="my-archives" class="tab-panel" active>
           ${this.renderStatusCard()}
           <argo-archive-list
             id="archive-list"
             .filterQuery=${
-              //@ts-expect-error - TS2339 - Property 'searchQuery' does not exist on type 'ArgoViewer'.
+              // @ts-expect-error - TS2339 - Property 'searchQuery' does not exist on type 'ArgoViewer'.
               this.searchQuery
             }
           ></argo-archive-list>
@@ -868,19 +953,6 @@ class ArgoViewer extends LitElement {
                     <md-icon slot="icon" style="color:white">public</md-icon>
                     Resume Archiving
                   </md-filled-button>
-                  <md-icon-button
-                    aria-label="Download"
-                    @click=${this.onDownload}
-                  >
-                    <md-icon style="color: gray;">download</md-icon>
-                  </md-icon-button>
-
-                  <md-icon-button
-                    aria-label="Share"
-                    @click=${this.onShareSelected}
-                  >
-                    <md-icon style="color: gray;">share</md-icon>
-                  </md-icon-button>
                 `
               : html`
                   <md-outlined-button

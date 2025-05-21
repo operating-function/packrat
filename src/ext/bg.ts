@@ -3,7 +3,6 @@ import { BrowserRecorder } from "./browser-recorder";
 import { CollectionLoader } from "@webrecorder/wabac/swlib";
 
 import { listAllMsg } from "../utils";
-
 import {
   getLocalOption,
   removeLocalOption,
@@ -107,6 +106,27 @@ function sidepanelHandler(port) {
         } else {
           port.postMessage({ type: "pages", pages: [] });
         }
+        break;
+      }
+
+      case "deletePages": {
+        const defaultCollId = await getLocalOption("defaultCollId");
+        if (!defaultCollId) {
+          return;
+        }
+        const coll = await collLoader.loadColl(defaultCollId);
+
+        // delete each page from the local store
+        for (const id of message.pageIds) {
+          // swlib’s store.deletePage (or similar) removes it.
+          // If your API is identical to ReplayWeb.page’s HTTP API:
+          // DELETE `${this.collInfo.apiPrefix}/page/${id}` :contentReference[oaicite:0]{index=0}
+          await coll.store.deletePage(id);
+        }
+
+        // now re-send the new list of pages
+        const pages = await coll.store.getAllPages();
+        port.postMessage({ type: "pages", pages });
         break;
       }
 
