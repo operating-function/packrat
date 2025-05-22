@@ -101,7 +101,7 @@ class ArgoViewer extends LitElement {
         font-size: 12px;
         font-weight: 500;
         color: #6b6b6b;
-        margin-bottom: 4px;
+        margin-bottom: 6px;
       }
 
       .status-content {
@@ -909,7 +909,7 @@ class ArgoViewer extends LitElement {
           <div
             style="display:flex; align-items:center; justify-content:space-between; padding: 0.25rem 1rem;"
           >
-            <div style="display:flex; align-items:center; gap: 0.5rem;">
+            <div style="display:flex; align-items:center;">
               <md-icon-button
                 aria-label="Deselect All"
                 @click=${() => {
@@ -929,7 +929,7 @@ class ArgoViewer extends LitElement {
               >
             </div>
 
-            <div style="display:flex; align-items:center; gap: 0.5rem;">
+            <div style="display:flex; align-items:center;">
               <md-icon-button aria-label="Download" @click=${this.onDownload}
                 ><md-icon>download</md-icon></md-icon-button
               >
