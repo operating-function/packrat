@@ -740,7 +740,7 @@ class ArgoViewer extends LitElement {
                   style="color: white; border-radius: 9999px; align-self: flex-end;"
                   @click=${this.onShareCurrent}
                 >
-                  <md-icon slot="icon" style="color:white">share</md-icon>
+                  <md-icon slot="icon" style="color:#444">share</md-icon>
                   Share Current Page
                 </md-filled-button> `
             : ""
@@ -887,7 +887,7 @@ class ArgoViewer extends LitElement {
                     aria-label="Download"
                     @click=${this.onDownload}
                   >
-                    <md-icon style="color: gray">download</md-icon>
+                    <md-icon>download</md-icon>
                   </md-icon-button>
 
                   <!-- Share -->
@@ -895,7 +895,7 @@ class ArgoViewer extends LitElement {
                     aria-label="Share"
                     @click=${this.onShareSelected}
                   >
-                    <md-icon style="color: gray">share</md-icon>
+                    <md-icon>share</md-icon>
                   </md-icon-button>
 
                   <!-- Delete -->
@@ -903,7 +903,7 @@ class ArgoViewer extends LitElement {
                     aria-label="Delete"
                     @click=${this.onDeleteSelected}
                   >
-                    <md-icon style="color: gray">delete</md-icon>
+                    <md-icon>delete</md-icon>
                   </md-icon-button>
                 </div>
               </div>
