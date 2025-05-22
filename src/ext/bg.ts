@@ -3,7 +3,6 @@ import { BrowserRecorder } from "./browser-recorder";
 import { CollectionLoader } from "@webrecorder/wabac/swlib";
 
 import { listAllMsg } from "../utils";
-
 import {
   getLocalOption,
   removeLocalOption,
@@ -107,6 +106,23 @@ function sidepanelHandler(port) {
         } else {
           port.postMessage({ type: "pages", pages: [] });
         }
+        break;
+      }
+
+      case "deletePages": {
+        const defaultCollId = await getLocalOption("defaultCollId");
+        if (!defaultCollId) {
+          return;
+        }
+        const coll = await collLoader.loadColl(defaultCollId);
+
+        for (const id of message.pageIds) {
+          await coll.store.deletePage(id);
+        }
+
+        // now re-send the new list of pages
+        const pages = await coll.store.getAllPages();
+        port.postMessage({ type: "pages", pages });
         break;
       }
 
