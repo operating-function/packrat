@@ -126,6 +126,35 @@ class ArgoViewer extends LitElement {
         filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.6));
       }
 
+      /* Fade overlay styles */
+      .tabs-wrapper {
+        position: relative;
+      }
+
+      .tabs-overlay {
+        transition: opacity 0.3s ease;
+      }
+      .tabs-overlay.inactive {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .actions-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        transition: opacity 0.3s ease;
+        opacity: 0;
+        pointer-events: none;
+        background: white;
+        z-index: 1;
+      }
+      .actions-overlay.active {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
       md-icon[filled] {
         font-variation-settings: "FILL" 1;
       }
@@ -852,82 +881,78 @@ class ArgoViewer extends LitElement {
 
   renderTabs() {
     return html`
-      ${
-        // @ts-expect-error - TS2339 - Property 'selectedCount' does not exist on type 'ArgoViewer'.
-        this.selectedCount > 0
-          ? html`
-              <div
-                style="display:flex; align-items:center; justify-content:space-between; padding: 0.25rem 1rem;"
+      <div class="tabs-wrapper">
+        <!-- Original tabs overlay -->
+        <div
+          class="tabs-overlay ${
+            //@ts-expect-error
+            this.selectedCount > 0 ? "inactive" : ""
+          }"
+        >
+          <md-tabs id="tabs" aria-label="Archive tabs">
+            <md-primary-tab class="md-typescale-label-large"
+              >My Archives</md-primary-tab
+            >
+            <md-primary-tab class="md-typescale-label-large"
+              >My Shared Archives</md-primary-tab
+            >
+          </md-tabs>
+        </div>
+
+        <!-- Actions overlay on selection -->
+        <div
+          class="actions-overlay ${
+            //@ts-expect-error
+            this.selectedCount > 0 ? "active" : ""
+          }"
+        >
+          <div
+            style="display:flex; align-items:center; justify-content:space-between; padding: 0.25rem 1rem;"
+          >
+            <div style="display:flex; align-items:center; gap: 0.5rem;">
+              <md-icon-button
+                aria-label="Deselect All"
+                @click=${() => {
+                  this.archiveList.clearSelection();
+                  //@ts-expect-error
+                  this.selectedCount = 0;
+                }}
               >
-                <div style="display:flex; align-items:center; gap: 0.5rem;">
-                  <!-- Deselect All -->
-                  <md-icon-button
-                    aria-label="Deselect All"
-                    @click=${() => {
-                      this.archiveList.clearSelection();
-                      // @ts-expect-error
-                      this.selectedCount = 0;
-                    }}
-                  >
-                    <md-icon style="color: gray">clear</md-icon>
-                  </md-icon-button>
+                <md-icon style="color: gray">clear</md-icon>
+              </md-icon-button>
+              <span class="md-typescale-body-small"
+                >${
+                  //@ts-expect-error
+                  this.selectedCount
+                }
+                selected</span
+              >
+            </div>
 
-                  <span class="md-typescale-body-small"
-                    >${
-                      // @ts-expect-error - TS2339 - Property 'selectedCount' does not exist on type 'ArgoViewer'.
-                      this.selectedCount
-                    }
-                    selected</span
-                  >
-                </div>
+            <div style="display:flex; align-items:center; gap: 0.5rem;">
+              <md-icon-button aria-label="Download" @click=${this.onDownload}
+                ><md-icon>download</md-icon></md-icon-button
+              >
+              <md-icon-button aria-label="Share" @click=${this.onShareSelected}
+                ><md-icon>share</md-icon></md-icon-button
+              >
+              <md-icon-button
+                aria-label="Delete"
+                @click=${this.onDeleteSelected}
+                ><md-icon>delete</md-icon></md-icon-button
+              >
+            </div>
+          </div>
+          <md-divider></md-divider>
+        </div>
+      </div>
 
-                <!-- Download -->
-                <div style="display:flex; align-items:center; gap: 0.5rem;">
-                  <md-icon-button
-                    aria-label="Download"
-                    @click=${this.onDownload}
-                  >
-                    <md-icon>download</md-icon>
-                  </md-icon-button>
-
-                  <!-- Share -->
-                  <md-icon-button
-                    aria-label="Share"
-                    @click=${this.onShareSelected}
-                  >
-                    <md-icon>share</md-icon>
-                  </md-icon-button>
-
-                  <!-- Delete -->
-                  <md-icon-button
-                    aria-label="Delete"
-                    @click=${this.onDeleteSelected}
-                  >
-                    <md-icon>delete</md-icon>
-                  </md-icon-button>
-                </div>
-              </div>
-              <md-divider></md-divider>
-            `
-          : html`
-              <!-- ─── NORMAL TABS BAR ─── -->
-              <md-tabs id="tabs" aria-label="Archive tabs">
-                <md-primary-tab class="md-typescale-label-large"
-                  >My Archives</md-primary-tab
-                >
-                <md-primary-tab class="md-typescale-label-large"
-                  >My Shared Archives</md-primary-tab
-                >
-              </md-tabs>
-            `
-      }
-
-      <!-- ─── PANELS ─── -->
+      <!-- Panels remain unchanged -->
       <div
         class="tab-panels"
         style="flex:1; overflow-y:auto; position:relative; flex-grow:1;"
         @selection-change=${(e: CustomEvent) =>
-          // @ts-expect-error - TS2339 - Property 'selectedCount' does not exist on type 'ArgoViewer'.
+          // @ts-expect-error
           (this.selectedCount = e.detail.count)}
       >
         <div id="my-archives" class="tab-panel" active>
@@ -935,7 +960,7 @@ class ArgoViewer extends LitElement {
           <argo-archive-list
             id="archive-list"
             .filterQuery=${
-              // @ts-expect-error - TS2339 - Property 'searchQuery' does not exist on type 'ArgoViewer'.
+              // @ts-expect-error
               this.searchQuery
             }
           ></argo-archive-list>
