@@ -59,6 +59,15 @@ export class ArgoArchiveList extends LitElement {
         --md-list-item-trailing-space: 12px;
 
         --md-list-item-one-line-container-height: 0px;
+        --md-list-item-hover-state-layer-opacity: 0;
+      }
+
+      md-list-item[type="button"]:hover {
+        background: transparent !important;
+      }
+
+      md-list-item md-ripple {
+        display: none !important;
       }
 
       .md-badge {
