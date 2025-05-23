@@ -394,9 +394,6 @@ class ArgoViewer extends LitElement {
 
     for (const record of shared) {
       try {
-        // Skip if already seeding
-        if (client.get(record.magnetURI)) continue;
-
         // Get file handle and file from OPFS
         const handle = await opfsRoot.getFileHandle(record.filename, {
           create: false,
@@ -466,44 +463,49 @@ class ArgoViewer extends LitElement {
     const file = await fileHandle.getFile();
 
     // Seed the file
-    // @ts-expect-error
-    client.seed(file, async (torrent) => {
-      const magnetURI = torrent.magnetURI;
-      console.log("Seeding WACZ file via WebTorrent:", magnetURI);
+    client.seed(
+      file,
+      WS_TRACKERS.length
+        ? { announce: WS_TRACKERS, name: filename }
+        : undefined,
+      async (torrent) => {
+        const magnetURI = torrent.magnetURI;
+        console.log("Seeding WACZ file via WebTorrent:", magnetURI);
 
-      // Copy to clipboard
-      navigator.clipboard
-        .writeText(magnetURI)
-        .then(() => {
-          alert(`Magnet link copied to clipboard:\n${magnetURI}`);
-        })
-        .catch((err) => {
-          console.error("Failed to copy magnet link:", err);
-          alert(`Magnet Link Ready:\n${magnetURI}`);
+        // Copy to clipboard
+        navigator.clipboard
+          .writeText(magnetURI)
+          .then(() => {
+            alert(`Magnet link copied to clipboard:\n${magnetURI}`);
+          })
+          .catch((err) => {
+            console.error("Failed to copy magnet link:", err);
+            alert(`Magnet Link Ready:\n${magnetURI}`);
+          });
+
+        const existing = await getSharedArchives();
+        const record: SharedArchive = {
+          id: Date.now().toString(),
+          pages,
+          magnetURI,
+          filename,
+          seededAt: Date.now(),
+        };
+        const updated = [record, ...existing];
+        await setSharedArchives(updated);
+        this.sendMessage({
+          type: "sharedArchives",
+          sharedArchives: updated,
         });
 
-      const existing = await getSharedArchives();
-      const record: SharedArchive = {
-        id: Date.now().toString(),
-        pages,
-        magnetURI,
-        filename,
-        seededAt: Date.now(),
-      };
-      const updated = [record, ...existing];
-      await setSharedArchives(updated);
-      this.sendMessage({
-        type: "sharedArchives",
-        sharedArchives: updated,
-      });
-
-      // 3) Update reactive property for the UI
-      // @ts-expect-error
-      this.sharedArchives = updated;
-      // @ts-expect-error
-      console.log("Shared archives updated:", this.sharedArchives);
-      console.log("Currently seeding torrents:", client.torrents);
-    });
+        // 3) Update reactive property for the UI
+        // @ts-expect-error
+        this.sharedArchives = updated;
+        // @ts-expect-error
+        console.log("Shared archives updated:", this.sharedArchives);
+        console.log("Currently seeding torrents:", client.torrents);
+      },
+    );
   }
 
   async firstUpdated() {
