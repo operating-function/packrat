@@ -19,8 +19,8 @@ import "./coll-index";
 import { BtrixClient } from "./upload";
 
 import wrRec from "../assets/icons/recLogo.svg";
-import awpLogo from "../assets/brand/archivewebpage-icon-color.svg";
-import awpBrandLockupColor from "../assets/brand/archivewebpage-lockup-color.svg";
+// import awpLogo from "../assets/brand/archivewebpage-icon-color.svg";
+// import awpBrandLockupColor from "../assets/brand/archivewebpage-lockup-color.svg";
 import prettyBytes from "pretty-bytes";
 
 import {

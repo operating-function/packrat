@@ -1,6 +1,6 @@
 {
-  "name": "Webrecorder ArchiveWeb.page",
-  "description": "Create high-fidelity web archives directly in your browser",
+  "name": "Packrat",
+  "description": "Save a copy of every webpage you browse and share them with others!",
   "version": "$VERSION",
   "permissions": [
     "debugger",
@@ -24,7 +24,7 @@
     "default_icon": {
       "32": "$ICON"
     },
-    "default_title": "Webrecorder ArchiveWeb.page"
+    "default_title": "Packrat"
   },
   "side_panel": {
     "default_path": "sidepanel.html"
