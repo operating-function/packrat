@@ -1,3 +1,18 @@
+import { SharedArchive } from "./types";
+
+const SHARED_KEY = "sharedArchives";
+
+/** Fetch the entire array (or [] if none) */
+export async function getSharedArchives(): Promise<SharedArchive[]> {
+  const { [SHARED_KEY]: arr } = await chrome.storage.local.get(SHARED_KEY);
+  return Array.isArray(arr) ? arr : [];
+}
+
+/** Overwrite the stored array */
+export async function setSharedArchives(arr: SharedArchive[]): Promise<void> {
+  await chrome.storage.local.set({ [SHARED_KEY]: arr });
+}
+
 // @ts-expect-error - TS7006 - Parameter 'name' implicitly has an 'any' type. | TS7006 - Parameter 'value' implicitly has an 'any' type.
 export function setLocalOption(name, value) {
   // @ts-expect-error - TS2339 - Property 'chrome' does not exist on type 'Window & typeof globalThis'. | TS2339 - Property 'chrome' does not exist on type 'Window & typeof globalThis'.

@@ -7,8 +7,8 @@ import {
   getLocalOption,
   removeLocalOption,
   setLocalOption,
+  getSharedArchives,
 } from "../localstorage";
-
 // ===========================================================================
 self.recorders = {};
 self.newRecId = null;
@@ -193,6 +193,11 @@ function sidepanelHandler(port) {
         defaultCollId = name;
         port.postMessage(await listAllMsg(collLoader, { defaultCollId }));
         await setLocalOption("defaultCollId", defaultCollId);
+        break;
+      }
+      case "getSharedArchives": {
+        const arr = await getSharedArchives();
+        port.postMessage({ type: "sharedArchives", sharedArchives: arr });
         break;
       }
     }

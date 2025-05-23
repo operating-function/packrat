@@ -3,10 +3,14 @@ import { styles as typescaleStyles } from "@material/web/typography/md-typescale
 import { LitElement, html, css, CSSResultGroup } from "lit";
 import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 import "./argo-archive-list";
+import "./argo-shared-archive-list";
 import "@material/web/textfield/outlined-text-field.js";
 import "@material/web/icon/icon.js";
 import { ArgoArchiveList } from "./argo-archive-list";
 import { Downloader } from "./sw/downloader";
+import type { SharedArchive } from "./types";
+import { getSharedArchives, setSharedArchives } from "./localstorage";
+import { webtorrentClient as client } from "./global-webtorrent";
 
 import {
   getLocalOption,
@@ -28,6 +32,13 @@ import { mapIntegerToRange, truncateString } from "./utils";
 import { CollectionLoader } from "@webrecorder/wabac/swlib";
 
 document.adoptedStyleSheets.push(typescaleStyles.styleSheet!);
+
+const WS_TRACKERS = [
+  "wss://tracker.openwebtorrent.com",
+  "wss://tracker.btorrent.xyz",
+  "wss://tracker.fastcast.nz",
+  "wss://tracker.clear.netty.link",
+];
 
 const collLoader = new CollectionLoader();
 class ArgoViewer extends LitElement {
@@ -101,7 +112,7 @@ class ArgoViewer extends LitElement {
         font-size: 12px;
         font-weight: 500;
         color: #6b6b6b;
-        margin-bottom: 4px;
+        margin-bottom: 6px;
       }
 
       .status-content {
@@ -155,6 +166,13 @@ class ArgoViewer extends LitElement {
         pointer-events: auto;
       }
 
+      .tab-panel {
+        display: none;
+      }
+      .tab-panel[active] {
+        display: block;
+      }
+
       md-icon[filled] {
         font-variation-settings: "FILL" 1;
       }
@@ -164,6 +182,8 @@ class ArgoViewer extends LitElement {
   private archiveList!: ArgoArchiveList;
   constructor() {
     super();
+    // @ts-expect-error - TS2339 - Property 'activeTabIndex' does not exist on type 'ArgoViewer'.
+    this.activeTabIndex = 0;
     // @ts-expect-error - TS2339 - Property 'selectedCount' does not exist on type 'ArgoViewer'.
     this.selectedCount = 0;
     // @ts-expect-error - TS2339 - Property 'searchQuery' does not exist on type 'ArgoViewer'.
@@ -217,6 +237,9 @@ class ArgoViewer extends LitElement {
     this.behaviorMsg = "";
     // @ts-expect-error - TS2339 - Property 'autorun' does not exist on type 'ArgoViewer'.
     this.autorun = false;
+
+    // @ts-expect-error - TS2339 - Property 'sharedArchives' does not exist on type 'ArgoViewer'.
+    this.sharedArchives = [];
   }
 
   static get properties() {
@@ -227,6 +250,7 @@ class ArgoViewer extends LitElement {
       collId: { type: String },
       collTitle: { type: String },
       collDrop: { type: String },
+      sharedArchives: { type: Array },
 
       recording: { type: Boolean },
       status: { type: Object },
@@ -244,6 +268,7 @@ class ArgoViewer extends LitElement {
       behaviorResults: { type: Object },
       behaviorMsg: { type: String },
       autorun: { type: Boolean },
+      activeTabIndex: { type: Number },
     };
   }
 
@@ -360,6 +385,40 @@ class ArgoViewer extends LitElement {
     await this.onShare([currentPage]);
   }
 
+  private async reseedAll() {
+    const shared: SharedArchive[] = await getSharedArchives();
+    if (!shared.length) return;
+
+    const opfsRoot = await navigator.storage.getDirectory();
+    console.log(`♻️ reseedAll: found ${shared.length} archives`);
+
+    for (const record of shared) {
+      try {
+        // Skip if already seeding
+        if (client.get(record.magnetURI)) continue;
+
+        // Get file handle and file from OPFS
+        const handle = await opfsRoot.getFileHandle(record.filename, {
+          create: false,
+        });
+        const file = await handle.getFile();
+
+        client.seed(
+          file,
+          WS_TRACKERS.length
+            ? { announce: WS_TRACKERS, name: record.filename }
+            : undefined,
+          (torrent) => {
+            console.log(`♻️ Re-seeding ${record.filename}:`, torrent.infoHash);
+            console.log("Magnet:", torrent.magnetURI);
+          },
+        );
+      } catch (err) {
+        console.warn(`⚠️ Could not reseed ${record.filename}:`, err);
+      }
+    }
+  }
+
   // @ts-expect-error - TS7006 - Parameter 'pages' implicitly has an 'any' type.
   private async onShare(pages) {
     const defaultCollId = (await getLocalOption("defaultCollId")) || "";
@@ -406,12 +465,9 @@ class ArgoViewer extends LitElement {
     const fileHandle = await opfsRoot.getFileHandle(filename);
     const file = await fileHandle.getFile();
 
-    // Create a WebTorrent client if not already available
-    const client = new (window as any).WebTorrent();
-
     // Seed the file
     // @ts-expect-error
-    client.seed(file, (torrent) => {
+    client.seed(file, async (torrent) => {
       const magnetURI = torrent.magnetURI;
       console.log("Seeding WACZ file via WebTorrent:", magnetURI);
 
@@ -425,16 +481,49 @@ class ArgoViewer extends LitElement {
           console.error("Failed to copy magnet link:", err);
           alert(`Magnet Link Ready:\n${magnetURI}`);
         });
+
+      const existing = await getSharedArchives();
+      const record: SharedArchive = {
+        id: Date.now().toString(),
+        pages,
+        magnetURI,
+        filename,
+        seededAt: Date.now(),
+      };
+      const updated = [record, ...existing];
+      await setSharedArchives(updated);
+      this.sendMessage({
+        type: "sharedArchives",
+        sharedArchives: updated,
+      });
+
+      // 3) Update reactive property for the UI
+      // @ts-expect-error
+      this.sharedArchives = updated;
+      // @ts-expect-error
+      console.log("Shared archives updated:", this.sharedArchives);
+      console.log("Currently seeding torrents:", client.torrents);
     });
   }
 
-  firstUpdated() {
+  async firstUpdated() {
     this.archiveList = this.shadowRoot!.getElementById(
       "archive-list",
     ) as ArgoArchiveList;
 
     console.log("Archive list:", this.archiveList);
     this.registerMessages();
+
+    getSharedArchives().then((arr) => {
+      // @ts-expect-error - this.sharedArchives does not exist
+      this.sharedArchives = arr;
+      // @ts-expect-error
+      console.log("Shared archives:", this.sharedArchives);
+    });
+
+    await this.reseedAll();
+
+    console.log("Currently seeding (firstUpdated) torrents:", client.torrents);
   }
 
   updateTabInfo() {
@@ -890,10 +979,20 @@ class ArgoViewer extends LitElement {
           }"
         >
           <md-tabs id="tabs" aria-label="Archive tabs">
-            <md-primary-tab class="md-typescale-label-large"
+            <md-primary-tab
+              @click=${() => {
+                // @ts-expect-error
+                this.activeTabIndex = 0;
+              }}
+              class="md-typescale-label-large"
               >My Archives</md-primary-tab
             >
-            <md-primary-tab class="md-typescale-label-large"
+            <md-primary-tab
+              @click=${() => {
+                // @ts-expect-error
+                this.activeTabIndex = 1;
+              }}
+              class="md-typescale-label-large"
               >My Shared Archives</md-primary-tab
             >
           </md-tabs>
@@ -902,19 +1001,19 @@ class ArgoViewer extends LitElement {
         <!-- Actions overlay on selection -->
         <div
           class="actions-overlay ${
-            //@ts-expect-error
+            // @ts-expect-error
             this.selectedCount > 0 ? "active" : ""
           }"
         >
           <div
             style="display:flex; align-items:center; justify-content:space-between; padding: 0.25rem 1rem;"
           >
-            <div style="display:flex; align-items:center; gap: 0.5rem;">
+            <div style="display:flex; align-items:center;">
               <md-icon-button
                 aria-label="Deselect All"
                 @click=${() => {
                   this.archiveList.clearSelection();
-                  //@ts-expect-error
+                  // @ts-expect-error
                   this.selectedCount = 0;
                 }}
               >
@@ -922,14 +1021,14 @@ class ArgoViewer extends LitElement {
               </md-icon-button>
               <span class="md-typescale-body-small"
                 >${
-                  //@ts-expect-error
+                  // @ts-expect-error
                   this.selectedCount
                 }
                 selected</span
               >
             </div>
 
-            <div style="display:flex; align-items:center; gap: 0.5rem;">
+            <div style="display:flex; align-items:center;">
               <md-icon-button aria-label="Download" @click=${this.onDownload}
                 ><md-icon>download</md-icon></md-icon-button
               >
@@ -951,11 +1050,18 @@ class ArgoViewer extends LitElement {
       <div
         class="tab-panels"
         style="flex:1; overflow-y:auto; position:relative; flex-grow:1;"
-        @selection-change=${(e: CustomEvent) =>
-          // @ts-expect-error
-          (this.selectedCount = e.detail.count)}
+        @selection-change=${(
+          e: CustomEvent, // @ts-expect-error
+        ) => (this.selectedCount = e.detail.count)}
       >
-        <div id="my-archives" class="tab-panel" active>
+        <div
+          id="my-archives"
+          class="tab-panel"
+          ?active=${
+            // @ts-expect-error
+            this.activeTabIndex === 0
+          }
+        >
           ${this.renderStatusCard()}
           <argo-archive-list
             id="archive-list"
@@ -965,8 +1071,30 @@ class ArgoViewer extends LitElement {
             }
           ></argo-archive-list>
         </div>
-        <div id="shared-archives" class="tab-panel">
-          <!-- future “shared” list… -->
+        <div
+          id="shared-archives"
+          class="tab-panel"
+          ?active=${
+            // @ts-expect-error
+            this.activeTabIndex === 1
+          }
+        >
+          <argo-shared-archive-list
+            id="shared-archive-list"
+            .filterQuery=${
+              // @ts-expect-error
+              this.searchQuery
+            }
+            .sharedArchives=${
+              // @ts-expect-error
+              this.sharedArchives
+            }
+            @shared-archives-changed=${(e: CustomEvent) => {
+              console.log("Shared archives changed event:", e.detail);
+              // @ts-expect-error
+              this.sharedArchives = e.detail.sharedArchives;
+            }}
+          ></argo-shared-archive-list>
         </div>
       </div>
     `;
