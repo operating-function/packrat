@@ -373,6 +373,9 @@ class ArgoViewer extends LitElement {
     }
     console.log("Selected pages to share:", selectedPages);
     await this.onShare(selectedPages);
+    this.archiveList.clearSelection();
+    // @ts-expect-error
+    this.selectedCount = 0;
   }
 
   private async onShareCurrent() {
