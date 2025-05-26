@@ -270,7 +270,9 @@ export class ArgoSharedArchiveList extends LitElement {
     const record = this.sharedArchives.find((a) => a.id === id);
     if (!record) return;
     const torrent = client.get(record.magnetURI);
-    if (torrent) torrent.destroy();
+    if (torrent) {
+      await new Promise<void>((resolve) => torrent.destroy(() => resolve()));
+    }
 
     const all = this.sharedArchives.filter((a) => a.id !== id);
     await setSharedArchives(all);
