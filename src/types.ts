@@ -20,3 +20,18 @@ export type BtrixOpts = {
   orgName: string;
   client?: BtrixClient;
 };
+
+export interface SharedArchive {
+  id: string;
+  pages: Array<{
+    id: string;
+    ts: string;
+    url: string;
+    title?: string;
+    favIconUrl?: string;
+    text?: string;
+  }>;
+  magnetURI: string;
+  filename: string;
+  seededAt: number;
+}
