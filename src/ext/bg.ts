@@ -352,6 +352,17 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
       openWinMap.delete(changeInfo.url);
     }
 
+    if (changeInfo.url && !isValidUrl(changeInfo.url, skipDomains)) {
+      stopRecorder(tabId);
+      delete self.recorders[tabId];
+      // let the side-panel know the ’canRecord’/UI state changed
+      // @ts-expect-error
+      if (sidepanelPort) {
+        sidepanelPort.postMessage({ type: "update" });
+      }
+      return;
+    }
+
     // @ts-expect-error - TS2339 - Property 'waitForTabUpdate' does not exist on type 'BrowserRecorder'.
     if (recorder.waitForTabUpdate) {
       if (isValidUrl(changeInfo.url, skipDomains)) {
@@ -364,6 +375,10 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
       }
     }
   } else if (changeInfo.url) {
+    // @ts-expect-error - TS7034 - Variable 'err' implicitly has type 'any' in some locations where its type cannot be determined.
+    if (sidepanelPort) {
+      sidepanelPort.postMessage({ type: "update" });
+    }
     if (
       isRecordingEnabled &&
       isValidUrl(changeInfo.url, skipDomains) &&
