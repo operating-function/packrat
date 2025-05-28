@@ -37,7 +37,6 @@ let sidepanelPort = null;
 (async function loadSkipDomains() {
   // @ts-expect-error
   skipDomains = (await getLocalOption("skipDomains")) || [];
-  console.log("bg.skipDomains:", skipDomains);
 })();
 
 // ===========================================================================

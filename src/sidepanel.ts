@@ -532,12 +532,10 @@ class ArgoViewer extends LitElement {
       "archive-list",
     ) as ArgoArchiveList;
 
-    console.log("Archive list:", this.archiveList);
     this.registerMessages();
 
     // @ts-expect-error
     this.skipDomains = await getLocalOption("skipDomains");
-    console.log("sidepanel.skipDomains:", this.skipDomains);
 
     // @ts-expect-error - TS2339 - Property 'canRecord' does not exist on type 'ArgoViewer'.
     this.canRecord =
@@ -561,7 +559,7 @@ class ArgoViewer extends LitElement {
 
     await this.reseedAll();
 
-    console.log("Currently seeding (firstUpdated) torrents:", client.torrents);
+    console.log("Currently seeding torrents:", client.torrents);
   }
 
   updateTabInfo() {

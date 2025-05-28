@@ -166,7 +166,6 @@ class Recorder {
     this.archivePDF = (await getLocalOption("archivePDF")) === "1";
     // @ts-expect-error
     this.skipDomains = (await getLocalOption("skipDomains")) || [];
-    console.log("recorder.skipDomains", this.skipDomains);
   }
 
   // @ts-expect-error - TS7006 - Parameter 'autorun' implicitly has an 'any' type.

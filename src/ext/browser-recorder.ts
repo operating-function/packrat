@@ -2,6 +2,8 @@
 
 import { BEHAVIOR_RUNNING } from "../consts";
 import { Recorder } from "../recorder";
+import { isValidUrl } from "../utils";
+import { getLocalOption } from "../localstorage";
 
 // ===========================================================================
 const DEBUG = false;
@@ -333,18 +335,24 @@ class BrowserRecorder extends Recorder {
 
     return writtenSize;
   }
-
-  // @ts-expect-error - TS7006 - Parameter 'pageInfo' implicitly has an 'any' type.
-  _doAddPage(pageInfo) {
+  async _doAddPage(pageInfo: { url?: string; [key: string]: any }) {
     if (!pageInfo.url) {
       console.warn("Empty Page, Skipping");
       return;
     }
+
+    // @ts-expect-error
+    const skipDomains: string[] = (await getLocalOption("skipDomains")) || [];
+
+    if (!isValidUrl(pageInfo.url, skipDomains)) {
+      console.log("Skipping by policy:", pageInfo.url);
+      return;
+    }
+
     // @ts-expect-error - TS2339 - Property 'db' does not exist on type 'BrowserRecorder'.
     if (this.db) {
       // @ts-expect-error - TS2339 - Property 'db' does not exist on type 'BrowserRecorder'.
       const result = this.db.addPage(pageInfo);
-
       chrome.runtime.sendMessage({ type: "pageAdded" });
       return result;
     }
