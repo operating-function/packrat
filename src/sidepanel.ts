@@ -187,8 +187,14 @@ class ArgoViewer extends LitElement {
   @state() private showingSettings = false;
   @state() private skipDomains: string[] = [];
 
-  private _toggleSettings() {
+  private async _toggleSettings() {
     this.showingSettings = !this.showingSettings;
+    if (!this.showingSettings) {
+      await this.updateComplete;
+      this.archiveList = this.shadowRoot!.getElementById(
+        "archive-list",
+      ) as ArgoArchiveList;
+    }
   }
   constructor() {
     super();
