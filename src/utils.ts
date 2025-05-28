@@ -1,6 +1,42 @@
 import { getCollData } from "@webrecorder/wabac";
 import { getLocalOption, setLocalOption } from "./localstorage";
 
+export function isValidUrl(url: string, skipDomains: string[]): Boolean {
+  console.log("utils: Ignoring Urls:", skipDomains);
+  console.log("utils: current url:", url);
+
+  if (!isSupportedScheme(url)) {
+    console.log("utils: Invalid URL:", url);
+    return false;
+  }
+
+  if (isUrlInSkipList(url, skipDomains)) {
+    console.log(`utils: Skipping by policy: ${url}`);
+    return false;
+  }
+
+  console.log("utils: Archiving URL:", url);
+  return true;
+}
+
+function isSupportedScheme(url: string): boolean {
+  return (
+    url === "about:blank" || url.startsWith("http:") || url.startsWith("https:")
+  );
+}
+
+export function isUrlInSkipList(url: string, skipDomains: string[]): boolean {
+  try {
+    const host = new URL(url).hostname.toLowerCase();
+    return skipDomains.some(
+      (domain) => host === domain || host.endsWith(`.${domain}`),
+    );
+  } catch (e) {
+    console.log("utils: Malformed URL in skip check:", e);
+    return false;
+  }
+}
+
 // ===========================================================================
 // @ts-expect-error - TS7006 - Parameter 'collLoader' implicitly has an 'any' type.
 export async function ensureDefaultColl(collLoader) {

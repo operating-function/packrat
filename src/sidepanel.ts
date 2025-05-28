@@ -4,6 +4,7 @@ import { LitElement, html, css, CSSResultGroup } from "lit";
 import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 import "./argo-archive-list";
 import "./argo-shared-archive-list";
+import "./settings-page";
 import "@material/web/textfield/outlined-text-field.js";
 import "@material/web/icon/icon.js";
 import { ArgoArchiveList } from "./argo-archive-list";
@@ -11,6 +12,8 @@ import { Downloader } from "./sw/downloader";
 import type { SharedArchive } from "./types";
 import { getSharedArchives, setSharedArchives } from "./localstorage";
 import { webtorrentClient as client } from "./global-webtorrent";
+import { state } from "lit/decorators.js";
+import { isUrlInSkipList } from "./utils";
 
 import {
   getLocalOption,
@@ -180,6 +183,13 @@ class ArgoViewer extends LitElement {
   ];
 
   private archiveList!: ArgoArchiveList;
+
+  @state() private showingSettings = false;
+  @state() private skipDomains: string[] = [];
+
+  private _toggleSettings() {
+    this.showingSettings = !this.showingSettings;
+  }
   constructor() {
     super();
     // @ts-expect-error - TS2339 - Property 'activeTabIndex' does not exist on type 'ArgoViewer'.
@@ -519,6 +529,10 @@ class ArgoViewer extends LitElement {
     console.log("Archive list:", this.archiveList);
     this.registerMessages();
 
+    // @ts-expect-error
+    this.skipDomains = await getLocalOption("skipDomains");
+    console.log("sidepanel.skipDomains:", this.skipDomains);
+
     getSharedArchives().then((arr) => {
       // @ts-expect-error - this.sharedArchives does not exist
       this.sharedArchives = arr;
@@ -720,6 +734,8 @@ class ArgoViewer extends LitElement {
     ) {
       // @ts-expect-error - TS2339 - Property 'canRecord' does not exist on type 'ArgoViewer'.
       this.canRecord =
+        // @ts-expect-error - TS2339 - Property 'pageUrl' does not exist on type 'ArgoViewer'.
+        !isUrlInSkipList(this.pageUrl, this.skipDomains) &&
         // @ts-expect-error - TS2339 - Property 'pageUrl' does not exist on type 'ArgoViewer'.
         this.pageUrl &&
         // @ts-expect-error - TS2339 - Property 'pageUrl' does not exist on type 'ArgoViewer'.
@@ -1106,6 +1122,11 @@ class ArgoViewer extends LitElement {
   }
 
   render() {
+    if (this.showingSettings) {
+      return html`<settings-page
+        @back=${this._toggleSettings}
+      ></settings-page>`;
+    }
     return html`
       ${this.renderSearch()} ${this.renderTabs()}
       <div style="height: 72px; width: 100%;">
@@ -1139,7 +1160,7 @@ class ArgoViewer extends LitElement {
                 `
           }
 
-          <md-icon-button aria-label="Settings">
+          <md-icon-button aria-label="Settings" @click=${this._toggleSettings}>
             <md-icon>settings</md-icon>
           </md-icon-button>
         </div>

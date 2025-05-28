@@ -9,6 +9,7 @@ import {
   setLocalOption,
   getSharedArchives,
 } from "../localstorage";
+import { isValidUrl } from "../utils";
 // ===========================================================================
 self.recorders = {};
 self.newRecId = null;
@@ -22,6 +23,7 @@ let newRecCollId = null;
 let defaultCollId = null;
 let autorun = false;
 let isRecordingEnabled = false;
+let skipDomains = [] as string[];
 
 const openWinMap = new Map();
 
@@ -31,6 +33,12 @@ const disabledCSPTabs = new Set();
 
 // @ts-expect-error - TS7034 - Variable 'sidepanelPort' implicitly has type 'any' in some locations where its type cannot be determined.
 let sidepanelPort = null;
+
+(async function loadSkipDomains() {
+  // @ts-expect-error
+  skipDomains = (await getLocalOption("skipDomains")) || [];
+  console.log("bg.skipDomains:", skipDomains);
+})();
 
 // ===========================================================================
 
@@ -136,7 +144,7 @@ function sidepanelHandler(port) {
           //@ts-expect-error tabs has any type
           async (tabs) => {
             for (const tab of tabs) {
-              if (!isValidUrl(tab.url)) continue;
+              if (!isValidUrl(tab.url, skipDomains)) continue;
 
               await startRecorder(
                 tab.id,
@@ -217,6 +225,13 @@ chrome.runtime.onMessage.addListener(
   (message /*sender, sendResponse*/) => {
     console.log("onMessage", message);
     switch (message.msg) {
+      case "optionsChanged":
+        for (const rec of Object.values(self.recorders)) {
+          rec.initOpts();
+          rec.doUpdateStatus();
+        }
+        break;
+
       case "startNew":
         (async () => {
           newRecUrl = message.url;
@@ -256,7 +271,7 @@ chrome.tabs.onActivated.addListener(async ({ tabId }) => {
     chrome.tabs.get(tabId, resolve),
   );
 
-  if (!isValidUrl(tab.url)) return;
+  if (!isValidUrl(tab.url, skipDomains)) return;
   if (!self.recorders[tabId]) {
     await startRecorder(
       tabId,
@@ -296,7 +311,7 @@ chrome.tabs.onCreated.addListener((tab) => {
     newRecCollId = null;
   } else if (
     tab.openerTabId &&
-    (!tab.pendingUrl || isValidUrl(tab.pendingUrl)) &&
+    (!tab.pendingUrl || isValidUrl(tab.pendingUrl, skipDomains)) &&
     // @ts-expect-error - TS2339 - Property 'running' does not exist on type 'BrowserRecorder'.
     self.recorders[tab.openerTabId]?.running
   ) {
@@ -311,7 +326,7 @@ chrome.tabs.onCreated.addListener((tab) => {
   }
 
   if (start) {
-    if (openUrl && !isValidUrl(openUrl)) {
+    if (openUrl && !isValidUrl(openUrl, skipDomains)) {
       return;
     }
     startRecorder(
@@ -339,7 +354,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
 
     // @ts-expect-error - TS2339 - Property 'waitForTabUpdate' does not exist on type 'BrowserRecorder'.
     if (recorder.waitForTabUpdate) {
-      if (isValidUrl(changeInfo.url)) {
+      if (isValidUrl(changeInfo.url, skipDomains)) {
         recorder.attach();
       } else {
         // @ts-expect-error - TS2339 - Property 'waitForTabUpdate' does not exist on type 'BrowserRecorder'.
@@ -351,7 +366,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
   } else if (changeInfo.url) {
     if (
       isRecordingEnabled &&
-      isValidUrl(changeInfo.url) &&
+      isValidUrl(changeInfo.url, skipDomains) &&
       !self.recorders[tabId]
     ) {
       // @ts-expect-error - TS2554 - Expected 2 arguments, but got 3.
@@ -361,7 +376,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
     if (openWinMap.has(changeInfo.url)) {
       const collId = openWinMap.get(changeInfo.url);
       openWinMap.delete(changeInfo.url);
-      if (!tabId || !isValidUrl(changeInfo.url)) return;
+      if (!tabId || !isValidUrl(changeInfo.url, skipDomains)) return;
 
       // @ts-expect-error - TS2554 - Expected 2 arguments, but got 3.
       startRecorder(tabId, { collId, autorun }, changeInfo.url);
@@ -386,7 +401,7 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
 
     case "toggle-rec":
       if (!isRecording(tab.id)) {
-        if (isValidUrl(tab.url)) {
+        if (isValidUrl(tab.url, skipDomains)) {
           // @ts-expect-error - TS2554 - Expected 2 arguments, but got 1.
           startRecorder(tab.id);
         }
@@ -455,17 +470,6 @@ function toggleBehaviors(tabId) {
 function isRecording(tabId) {
   // @ts-expect-error - TS2339 - Property 'running' does not exist on type 'BrowserRecorder'.
   return self.recorders[tabId]?.running;
-}
-
-// ===========================================================================
-// @ts-expect-error - TS7006 - Parameter 'url' implicitly has an 'any' type.
-function isValidUrl(url) {
-  return (
-    url &&
-    (url === "about:blank" ||
-      url.startsWith("https:") ||
-      url.startsWith("http:"))
-  );
 }
 
 // ===========================================================================

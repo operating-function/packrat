@@ -1,5 +1,5 @@
 import { RequestResponseInfo } from "./requestresponseinfo";
-
+import { isValidUrl, isUrlInSkipList } from "./utils";
 import {
   getCustomRewriter,
   rewriteDASH,
@@ -60,6 +60,7 @@ class Recorder {
   archiveFlash = false;
   archiveScreenshots = false;
   archivePDF = false;
+  skipDomains: string[] = [];
 
   _fetchQueue: FetchEntry[] = [];
 
@@ -163,6 +164,9 @@ class Recorder {
     this.archiveScreenshots =
       (await getLocalOption("archiveScreenshots")) === "1";
     this.archivePDF = (await getLocalOption("archivePDF")) === "1";
+    // @ts-expect-error
+    this.skipDomains = (await getLocalOption("skipDomains")) || [];
+    console.log("recorder.skipDomains", this.skipDomains);
   }
 
   // @ts-expect-error - TS7006 - Parameter 'autorun' implicitly has an 'any' type.
@@ -1111,6 +1115,9 @@ class Recorder {
 
   // @ts-expect-error - TS7006 - Parameter 'currPage' implicitly has an 'any' type. | TS7006 - Parameter 'domSnapshot' implicitly has an 'any' type. | TS7006 - Parameter 'finished' implicitly has an 'any' type.
   commitPage(currPage, domSnapshot, finished) {
+    if (isUrlInSkipList(currPage?.url, this.skipDomains)) {
+      return;
+    }
     if (!currPage?.url || !currPage.ts || currPage.url === "about:blank") {
       return;
     }
@@ -1135,6 +1142,10 @@ class Recorder {
 
   // @ts-expect-error - TS7006 - Parameter 'data' implicitly has an 'any' type. | TS7006 - Parameter 'pageInfo' implicitly has an 'any' type.
   async commitResource(data, pageInfo) {
+    if (isUrlInSkipList(data.url, this.skipDomains)) {
+      return;
+    }
+
     const payloadSize = data.payload.length;
     // @ts-expect-error - TS2339 - Property 'pageInfo' does not exist on type 'Recorder'.
     pageInfo = pageInfo || this.pageInfo;
@@ -1552,11 +1563,6 @@ class Recorder {
     return !status || status === 204 || (status >= 300 && status < 400);
   }
 
-  // @ts-expect-error - TS7006 - Parameter 'url' implicitly has an 'any' type.
-  isValidUrl(url) {
-    return url && (url.startsWith("https:") || url.startsWith("http:"));
-  }
-
   // @ts-expect-error - TS7006 - Parameter 'params' implicitly has an 'any' type. | TS7006 - Parameter 'sessions' implicitly has an 'any' type.
   async handleLoadingFinished(params, sessions) {
     const reqresp = this.removeReqResp(params.requestId);
@@ -1566,7 +1572,7 @@ class Recorder {
       return;
     }
 
-    if (!this.isValidUrl(reqresp.url)) {
+    if (!isValidUrl(reqresp.url, this.skipDomains)) {
       return;
     }
 
@@ -1830,7 +1836,7 @@ class Recorder {
 
   // @ts-expect-error - TS7006 - Parameter 'request' implicitly has an 'any' type. | TS7006 - Parameter 'sessions' implicitly has an 'any' type.
   doAsyncFetch(request: FetchEntry, sessions) {
-    if (!request || !this.isValidUrl(request.url)) {
+    if (!request || !isValidUrl(request.url, this.skipDomains)) {
       return;
     }
 
