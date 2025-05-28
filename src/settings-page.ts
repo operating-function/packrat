@@ -175,7 +175,7 @@ export class SettingsPage extends LitElement {
             ></md-switch>
           </label>
           <p class="section-desc md-typescale-body-small">
-            Save screenshot + thumbnail of every page on load. Screenshot will be saved as soon as page is done loading.
+            Save a thumbnail screenshot of every page on load. Screenshot will be saved as soon as page is done loading.
           </p>
         </div>
 

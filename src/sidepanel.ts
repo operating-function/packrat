@@ -533,6 +533,19 @@ class ArgoViewer extends LitElement {
     this.skipDomains = await getLocalOption("skipDomains");
     console.log("sidepanel.skipDomains:", this.skipDomains);
 
+    // @ts-expect-error - TS2339 - Property 'canRecord' does not exist on type 'ArgoViewer'.
+    this.canRecord =
+      // @ts-expect-error - TS2339 - Property 'pageUrl' does not exist on type 'ArgoViewer'.
+      !isUrlInSkipList(this.pageUrl, this.skipDomains) &&
+      // @ts-expect-error - TS2339 - Property 'pageUrl' does not exist on type 'ArgoViewer'.
+      this.pageUrl &&
+      // @ts-expect-error - TS2339 - Property 'pageUrl' does not exist on type 'ArgoViewer'.
+      (this.pageUrl === "about:blank" ||
+        // @ts-expect-error - TS2339 - Property 'pageUrl' does not exist on type 'ArgoViewer'.
+        this.pageUrl.startsWith("http:") ||
+        // @ts-expect-error - TS2339 - Property 'pageUrl' does not exist on type 'ArgoViewer'.
+        this.pageUrl.startsWith("https:"));
+
     getSharedArchives().then((arr) => {
       // @ts-expect-error - this.sharedArchives does not exist
       this.sharedArchives = arr;
