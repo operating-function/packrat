@@ -95,7 +95,7 @@ export class ArgoSharedArchiveList extends LitElement {
         flex: 0 0 auto;
         object-fit: contain;
         border-radius: 4px;
-        filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.6));
+        filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.4));
       }
 
       .title-url {
