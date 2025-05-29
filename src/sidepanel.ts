@@ -122,6 +122,7 @@ class ArgoViewer extends LitElement {
         font-size: 14px;
         font-weight: 500;
         color: #000;
+        word-break: break-all;
       }
 
       .status-divider {
