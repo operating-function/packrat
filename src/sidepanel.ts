@@ -135,7 +135,7 @@ class ArgoViewer extends LitElement {
         width: var(--md-icon-size) !important;
         height: var(--md-icon-size) !important;
         flex: 0 0 auto;
-        object-fit: cover;
+        object-fit: contain;
         border-radius: 4px;
         filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.6));
       }
