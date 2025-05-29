@@ -122,6 +122,7 @@ class ArgoViewer extends LitElement {
         font-size: 14px;
         font-weight: 500;
         color: #000;
+        word-wrap: break-word;
         word-break: break-all;
       }
 
