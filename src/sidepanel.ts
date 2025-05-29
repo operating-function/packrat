@@ -896,7 +896,7 @@ class ArgoViewer extends LitElement {
                   style="color: white; border-radius: 9999px; align-self: flex-end;"
                   @click=${this.onShareCurrent}
                 >
-                  <md-icon slot="icon" style="color:#444">share</md-icon>
+                  <md-icon slot="icon">share</md-icon>
                   Share Current Page
                 </md-filled-button> `
             : ""
