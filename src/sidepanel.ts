@@ -5,6 +5,7 @@ import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 import "./argo-archive-list";
 import "./argo-shared-archive-list";
 import "./settings-page";
+import "./onboarding";
 import "@material/web/textfield/outlined-text-field.js";
 import "@material/web/icon/icon.js";
 import { ArgoArchiveList } from "./argo-archive-list";
@@ -186,6 +187,7 @@ class ArgoViewer extends LitElement {
 
   private archiveList!: ArgoArchiveList;
 
+  @state() private showOnboarding = false;
   @state() private showingSettings = false;
   @state() private skipDomains: string[] = [];
 
@@ -197,6 +199,12 @@ class ArgoViewer extends LitElement {
         "archive-list",
       ) as ArgoArchiveList;
     }
+  }
+
+  private async _onboardingDone() {
+    // turn the flag off so onboarding won’t show again
+    await setLocalOption("showOnboarding", "0");
+    this.showOnboarding = false;
   }
   constructor() {
     super();
@@ -538,6 +546,9 @@ class ArgoViewer extends LitElement {
 
     // @ts-expect-error
     this.skipDomains = await getLocalOption("skipDomains");
+
+    const onb = await getLocalOption("showOnboarding");
+    this.showOnboarding = onb !== "0";
 
     // @ts-expect-error - TS2339 - Property 'canRecord' does not exist on type 'ArgoViewer'.
     this.canRecord =
@@ -1141,6 +1152,12 @@ class ArgoViewer extends LitElement {
   }
 
   render() {
+    if (this.showOnboarding) {
+      return html`<wr-onboarding
+        @completed=${this._onboardingDone}
+      ></wr-onboarding>`;
+    }
+
     if (this.showingSettings) {
       return html`<settings-page
         @back=${this._toggleSettings}
