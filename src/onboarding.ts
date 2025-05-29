@@ -305,8 +305,10 @@ export class OnboardingView extends LitElement {
           </md-outlined-button>
 
           <md-filled-button @click=${this._next}>
-            <md-icon slot="icon">arrow_forward</md-icon>
-            ${this.step === this.content.length - 1 ? "Get Started!" : "Next"}
+            <span style="display: flex; align-items: center; gap: 8px;">
+              ${this.step === this.content.length - 1 ? "Get Started!" : "Next"}
+              <md-icon>arrow_forward</md-icon>
+            </span>
           </md-filled-button>
         </div>
       </div>
