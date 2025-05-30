@@ -106,15 +106,6 @@ export class OnboardingView extends LitElement {
         height: auto;
       }
 
-      /* Orange button for first slide */
-      .first-content md-filled-button {
-        --md-filled-button-container-color: #ff6b35;
-        --md-filled-button-container-shape: 999px;
-        --md-filled-button-label-text-size: 1rem;
-        --md-filled-button-hover-state-layer-color: rgba(0, 0, 0, 0.08);
-        --md-filled-button-pressed-state-layer-color: rgba(0, 0, 0, 0.12);
-      }
-
       /* Card content */
       .card-content {
         flex: 1;
