@@ -189,6 +189,7 @@ class ArgoViewer extends LitElement {
 
   @state() private showOnboarding = false;
   @state() private showingSettings = false;
+  @state() private isBlocked = false;
   @state() private skipDomains: string[] = [];
 
   private async _toggleSettings() {
@@ -762,6 +763,12 @@ class ArgoViewer extends LitElement {
       changedProperties.has("pageUrl") ||
       changedProperties.has("failureMsg")
     ) {
+      this.isBlocked =
+        // @ts-expect-error - TS2339 - Property 'pageUrl' does not exist on type 'ArgoViewer'.
+        !!this.pageUrl &&
+        // exactly the same check you use for skipDomains
+        // @ts-expect-error - TS2339 - Property 'pageUrl' does not exist on type 'ArgoViewer'.
+        isUrlInSkipList(this.pageUrl, this.skipDomains);
       // @ts-expect-error - TS2339 - Property 'canRecord' does not exist on type 'ArgoViewer'.
       this.canRecord =
         // @ts-expect-error - TS2339 - Property 'pageUrl' does not exist on type 'ArgoViewer'.
@@ -813,10 +820,6 @@ class ArgoViewer extends LitElement {
     this.waitingForStart = false;
     // @ts-expect-error - TS2339 - Property 'waitingForStop' does not exist on type 'ArgoViewer'.
     this.waitingForStop = true;
-  }
-
-  get notRecordingMessage() {
-    return "Archiving Disabled";
   }
 
   renderStatusCard() {
@@ -948,6 +951,20 @@ class ArgoViewer extends LitElement {
       `;
     }
 
+    if (this.isBlocked) {
+      return html`
+        <span class="status-title">Status</span>
+        <div class="status-container">
+          <md-icon filled style="color: var(--md-sys-color-error)"
+            >block</md-icon
+          >
+          <span class="status-content">
+            Archiving blocked by your block-list.
+          </span>
+        </div>
+      `;
+    }
+
     // @ts-expect-error - TS2339 - Property 'canRecord' does not exist on type 'ArgoViewer'.
     if (!this.canRecord) {
       // @ts-expect-error - TS2339 - Property 'pageUrl' does not exist on type 'ArgoViewer'. | TS2339 - Property 'pageUrl' does not exist on type 'ArgoViewer'.
@@ -988,7 +1005,7 @@ class ArgoViewer extends LitElement {
         <md-icon filled style="color: var(--md-sys-color-secondary)"
           >folder_off</md-icon
         >
-        <span class="status-content">${this.notRecordingMessage}</span>
+        <span class="status-content">Archiving Disabled</span>
       </div>
     `;
   }
