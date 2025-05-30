@@ -194,7 +194,17 @@ class ArgoViewer extends LitElement {
 
   private async _toggleSettings() {
     this.showingSettings = !this.showingSettings;
+
+    // when toggling *off* settings, reload skip-list and re-query
     if (!this.showingSettings) {
+      // re-load the list from storage
+      // @ts-expect-error
+      this.skipDomains = await getLocalOption("skipDomains");
+
+      // re-run your normal "update everything" flow
+      this.updateTabInfo();
+
+      // wait for the archive list element to re-render
       await this.updateComplete;
       this.archiveList = this.shadowRoot!.getElementById(
         "archive-list",
@@ -761,7 +771,8 @@ class ArgoViewer extends LitElement {
 
     if (
       changedProperties.has("pageUrl") ||
-      changedProperties.has("failureMsg")
+      changedProperties.has("failureMsg") ||
+      changedProperties.has("skipDomains")
     ) {
       this.isBlocked =
         // @ts-expect-error - TS2339 - Property 'pageUrl' does not exist on type 'ArgoViewer'.
