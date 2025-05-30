@@ -7,7 +7,7 @@ import "@material/web/list/list-item.js";
 import "@material/web/checkbox/checkbox.js";
 import "@material/web/icon/icon.js";
 import "@material/web/labs/card/elevated-card.js";
-
+// @ts-expect-error
 import filingDrawer from "assets/images/filing-drawer.avif";
 
 import { getLocalOption } from "./localstorage";
@@ -59,6 +59,15 @@ export class ArgoArchiveList extends LitElement {
         --md-list-item-trailing-space: 12px;
 
         --md-list-item-one-line-container-height: 0px;
+        --md-list-item-hover-state-layer-opacity: 0;
+      }
+
+      md-list-item[type="button"]:hover {
+        background: transparent !important;
+      }
+
+      md-list-item md-ripple {
+        display: none !important;
       }
 
       .md-badge {
@@ -184,15 +193,12 @@ export class ArgoArchiveList extends LitElement {
   protected updated(changed: PropertyValues) {
     super.updated(changed);
 
-    // 2) Rebuild the index when the raw pages change:
     if (changed.has("pages")) {
       this.flex = new FlexIndex<string>({
         tokenize: "forward",
         resolution: 3,
       });
       this.pages.forEach((p) => {
-        // include title + text (and URL if you like)
-
         const toIndex = [p.title ?? "", p.text ?? ""].join(" ");
         this.flex.add(p.ts, toIndex);
       });
@@ -204,6 +210,7 @@ export class ArgoArchiveList extends LitElement {
         this.filteredPages = [...this.pages];
       } else {
         // partial matches on title/text via the “match” preset
+        // @ts-expect-error
         const matches = this.flex.search(this.filterQuery) as string[];
         this.filteredPages = this.pages.filter((p) => matches.includes(p.ts));
       }
