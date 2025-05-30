@@ -123,6 +123,8 @@ class ArgoViewer extends LitElement {
         font-size: 14px;
         font-weight: 500;
         color: #000;
+        word-wrap: break-word;
+        word-break: break-all;
       }
 
       .status-divider {
@@ -136,9 +138,9 @@ class ArgoViewer extends LitElement {
         width: var(--md-icon-size) !important;
         height: var(--md-icon-size) !important;
         flex: 0 0 auto;
-        object-fit: cover;
+        object-fit: contain;
         border-radius: 4px;
-        filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.6));
+        filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.4));
       }
 
       /* Fade overlay styles */
@@ -907,7 +909,7 @@ class ArgoViewer extends LitElement {
                   style="color: white; border-radius: 9999px; align-self: flex-end;"
                   @click=${this.onShareCurrent}
                 >
-                  <md-icon slot="icon" style="color:#444">share</md-icon>
+                  <md-icon slot="icon">share</md-icon>
                   Share Current Page
                 </md-filled-button> `
             : ""

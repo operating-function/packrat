@@ -90,9 +90,9 @@ export class ArgoArchiveList extends LitElement {
         width: 20px !important;
         height: 20px !important;
         flex: 0 0 auto;
-        object-fit: cover;
+        object-fit: contain;
         border-radius: 4px;
-        filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.6));
+        filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.4));
       }
 
       summary {
