@@ -267,7 +267,7 @@ class Downloader {
 
     this.alreadyDecoded = !coll.config["decode"] && !coll.config["loadUrl"];
 
-    this.softwareString = softwareString || "ArchiveWeb.page";
+    this.softwareString = softwareString || "Packrat";
 
     this.uuidNamespace = uuidNamespace || DEFAULT_UUID_NAMESPACE;
 

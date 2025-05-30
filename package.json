@@ -1,14 +1,14 @@
 {
-  "name": "@webrecorder/archivewebpage",
-  "productName": "ArchiveWeb.page",
+  "name": "@opfn/packrat",
+  "productName": "Packrat",
   "version": "0.15.0",
   "main": "index.js",
-  "description": "Create Web Archives directly in your browser",
+  "description": "Create an archive of every page you browse",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/webrecorder/archiveweb.page.git"
   },
-  "author": "Webrecorder Software",
+  "author": "OPFN",
   "license": "AGPL-3.0-or-later",
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.13.0",

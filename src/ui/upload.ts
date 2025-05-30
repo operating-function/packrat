@@ -394,7 +394,7 @@ class BtrixUploader extends LitElement {
     const now = new Date().toLocaleString();
     urlObj.searchParams.set(
       "notes",
-      `Uploaded by ArchiveWeb.page ${VERSION} at ${now}`,
+      `Uploaded by Packrat ${VERSION} at ${now}`,
     );
 
     const url = urlObj.href;

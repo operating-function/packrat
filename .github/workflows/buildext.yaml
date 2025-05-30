@@ -38,12 +38,12 @@ jobs:
       - name: Create ZIP for Extension
         run: |
           cd dist/ext
-          zip ../../ArchiveWeb.page-${{ steps.package-version.outputs.current-version }}-extension.zip -r ./
+          zip ../../Packrat-${{ steps.package-version.outputs.current-version }}-extension.zip -r ./
 
       - name: Upload Extension ZIP to GitHub
         uses: softprops/action-gh-release@v1
         with:
-          files: ArchiveWeb.page-${{ steps.package-version.outputs.current-version }}-extension.zip
+          files: Packrat-${{ steps.package-version.outputs.current-version }}-extension.zip
           tag_name: v${{ steps.package-version.outputs.current-version }}
           fail_on_unmatched_files: true
           draft: true
@@ -51,7 +51,7 @@ jobs:
       - name: Upload Extension ZIP to Chrome Web Store
         uses: mnao305/chrome-extension-upload@3.0.0
         with:
-          file-path: ArchiveWeb.page-${{ steps.package-version.outputs.current-version }}-extension.zip
+          file-path: Packrat-${{ steps.package-version.outputs.current-version }}-extension.zip
           extension-id: fpeoodllldobpkbkabpblcfaogecpndd
           client-id: ${{ secrets.CHROME_WEBSTORE_CLIENT_ID }}
           client-secret: ${{ secrets.CHROME_WEBSTORE_CLIENT_SECRET }}
