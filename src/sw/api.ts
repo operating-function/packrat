@@ -11,7 +11,7 @@ type RouteMatch = Record<string, any>;
 
 declare let self: ServiceWorkerGlobalScope;
 
-const DEFAULT_SOFTWARE_STRING = `Webrecorder ArchiveWeb.page ${__AWP_VERSION__}, using warcio.js ${__WARCIO_VERSION__}`;
+const DEFAULT_SOFTWARE_STRING = `Packrat ${__AWP_VERSION__}, using warcio.js ${__WARCIO_VERSION__}`;
 
 // ===========================================================================
 class ExtAPI extends API {

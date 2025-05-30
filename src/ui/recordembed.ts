@@ -33,7 +33,7 @@ export class RecordEmbed extends Embed {
     this.replaybase = "./replay/";
     this.replayfile = "record.html";
     this.mainElementName = "archive-web-page-app";
-    this.appName = "Embedded ArchiveWeb.page";
+    this.appName = "Embedded Packrat";
     this.embed = "default";
     this.noWebWorker = true;
 
