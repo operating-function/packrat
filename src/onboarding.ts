@@ -1,4 +1,6 @@
 import { LitElement, html, css, unsafeCSS, CSSResultGroup } from "lit";
+import { unsafeSVG } from "lit/directives/unsafe-svg.js";
+
 import { customElement, property, state } from "lit/decorators.js";
 import { styles as typescaleStyles } from "@material/web/typography/md-typescale-styles.js";
 
@@ -9,8 +11,8 @@ import "@material/web/divider/divider.js";
 import "@material/web/icon/icon.js";
 
 // Import assets
-import packratLogo from "./assets/brand/packrat_by_opfn_logo.png";
 import forestImg from "./assets/images/forest.avif";
+import packratLogo from "./assets/brand/packrat-lockup-white.svg";
 import collageImg from "./assets/onboarding/collage.png";
 
 @customElement("wr-onboarding")
@@ -97,12 +99,12 @@ export class OnboardingView extends LitElement {
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 2rem;
+        gap: 3rem;
       }
 
-      .first-content img.logo {
-        width: 50%;
-        max-width: 300px;
+      .first-content .logo {
+        width: 100%;
+        max-width: 256px;
         height: auto;
       }
 
@@ -239,11 +241,7 @@ export class OnboardingView extends LitElement {
               ${i === 0
                 ? html`
                     <div class="first-content">
-                      <img
-                        class="logo"
-                        src="${packratLogo}"
-                        alt="Packrat Logo"
-                      />
+                      <span class="logo">${unsafeSVG(packratLogo)}</span>
                       <md-filled-button @click=${this._next}>
                         Get Started
                       </md-filled-button>
