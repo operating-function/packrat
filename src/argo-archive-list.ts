@@ -7,7 +7,6 @@ import "@material/web/list/list-item.js";
 import "@material/web/checkbox/checkbox.js";
 import "@material/web/icon/icon.js";
 import "@material/web/labs/card/elevated-card.js";
-// @ts-expect-error
 import filingDrawer from "assets/images/filing-drawer.avif";
 
 import { getLocalOption } from "./localstorage";

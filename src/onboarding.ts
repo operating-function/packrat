@@ -9,11 +9,9 @@ import "@material/web/divider/divider.js";
 import "@material/web/icon/icon.js";
 
 // Import assets
-import forestImg from "./assets/brand/forest.jpg";
 import packratLogo from "./assets/brand/packrat_by_opfn_logo.png";
+import forestImg from "./assets/images/forest.avif";
 import collageImg from "./assets/onboarding/collage.png";
-import archiveIcon from "./assets/brand/archivewebpage-icon-color.svg";
-import recLogo from "./assets/icons/recLogo.svg";
 
 @customElement("wr-onboarding")
 export class OnboardingView extends LitElement {
