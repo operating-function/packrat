@@ -241,7 +241,7 @@ export class OnboardingView extends LitElement {
               ${i === 0
                 ? html`
                     <div class="first-content">
-                      <span class="logo">${unsafeSVG(packratLogo)}</span>
+                      <span class="logo" role="img" aria-label="Packrat by OPFN logo">${unsafeSVG(packratLogo)}</span>
                       <md-filled-button @click=${this._next}>
                         Get Started
                       </md-filled-button>
