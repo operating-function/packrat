@@ -14,6 +14,7 @@ import { getSharedArchives, setSharedArchives } from "./localstorage";
 import { webtorrentClient as client } from "./global-webtorrent";
 import { state } from "lit/decorators.js";
 import { isUrlInSkipList } from "./utils";
+import { REPLAY_BASE_URL } from "./consts";
 
 import {
   getLocalOption,
@@ -493,15 +494,18 @@ class ArgoViewer extends LitElement {
         const magnetURI = torrent.magnetURI;
         console.log("Seeding WACZ file via WebTorrent:", magnetURI);
 
+        const replayLink = `${REPLAY_BASE_URL}/?source=${encodeURIComponent(
+          magnetURI,
+        )}`;
         // Copy to clipboard
         navigator.clipboard
-          .writeText(magnetURI)
+          .writeText(replayLink)
           .then(() => {
-            alert(`Magnet link copied to clipboard:\n${magnetURI}`);
+            alert(`Magnet link copied to clipboard:\n${replayLink}`);
           })
           .catch((err) => {
             console.error("Failed to copy magnet link:", err);
-            alert(`Magnet Link Ready:\n${magnetURI}`);
+            alert(`Magnet Link Ready:\n${replayLink}`);
           });
 
         const existing = await getSharedArchives();
