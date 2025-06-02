@@ -22,6 +22,8 @@ import {
 } from "./consts";
 import { getLocalOption } from "./localstorage";
 
+import { onPageArchived } from "./events";
+
 const encoder = new TextEncoder();
 
 const MAX_CONCURRENT_FETCH = 6;
@@ -1136,6 +1138,15 @@ class Recorder {
       // @ts-expect-error - TS2339 - Property '_cachePageInfo' does not exist on type 'Recorder'.
       this._cachePageInfo = null;
     }
+
+    if (finished && currPage.url) {
+      onPageArchived(currPage.url, currPage.size)
+        .then(() => {})
+        .catch((err) => {
+          console.error("onPageArchived failed:", err);
+        });
+    }
+
     return res;
   }
 
