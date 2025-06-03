@@ -13,7 +13,7 @@ import "@material/web/icon/icon.js";
 // Import assets
 import forestImg from "./assets/images/forest.avif";
 import packratLogo from "./assets/brand/packrat-lockup-white.svg";
-import collageImg from "./assets/onboarding/collage.png";
+import collageImg from "./assets/images/downloading.avif";
 
 @customElement("wr-onboarding")
 export class OnboardingView extends LitElement {
@@ -127,6 +127,8 @@ export class OnboardingView extends LitElement {
         align-items: center;
         justify-content: center;
         overflow: hidden;
+        filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.12))
+          drop-shadow(0 1px 2px rgba(0, 0, 0, 0.24));
       }
 
       .card-content img {
