@@ -41,7 +41,7 @@ export class OnboardingView extends LitElement {
         align-items: center;
         justify-content: flex-start; /* Changed from center */
         height: 100%;
-        transition: transform 300ms ease-in-out;
+        transition: transform 500ms ease-in-out;
         padding: 2rem;
         gap: 2rem;
         box-sizing: border-box;
@@ -75,10 +75,12 @@ export class OnboardingView extends LitElement {
         display: flex;
         flex-direction: column;
         flex-shrink: 0; /* Prevent slides from shrinking */
+        opacity: 1;
       }
 
       .slide.hidden {
         opacity: 0;
+        transition: opacity 2s ease-out;
       }
 
       /* First slide - full screen, no card styling */
