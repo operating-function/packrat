@@ -1140,11 +1140,15 @@ class Recorder {
     }
 
     if (finished && currPage.url) {
-      onPageArchived(currPage.url, currPage.size)
-        .then(() => {})
-        .catch((err) => {
+      try {
+        // Fire and forget, but with immediate error handling
+        onPageArchived(currPage.url, currPage.size).catch((err) => {
           console.error("onPageArchived failed:", err);
         });
+      } catch (err) {
+        // Handle synchronous errors too
+        console.error("onPageArchived synchronous error:", err);
+      }
     }
 
     return res;
