@@ -501,11 +501,13 @@ class ArgoViewer extends LitElement {
         navigator.clipboard
           .writeText(replayLink)
           .then(() => {
-            alert(`Magnet link copied to clipboard:\n${replayLink}`);
+            alert(
+              `ReplayWeb.page copied to clipboard (just paste it in the address bar):\n${replayLink}`,
+            );
           })
           .catch((err) => {
             console.error("Failed to copy magnet link:", err);
-            alert(`Magnet Link Ready:\n${replayLink}`);
+            alert(`ReplayWeb.page Ready:\n${replayLink}`);
           });
 
         const existing = await getSharedArchives();
