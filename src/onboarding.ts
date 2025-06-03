@@ -205,17 +205,20 @@ export class OnboardingView extends LitElement {
     {
       title: "Packrat downloads websites as you browse",
       img: collageImg,
-      body: "All the pages you view with the extension enabled will be saved to your computer.",
+      body: "All the pages you view with the extension enabled will be saved locally to your computer.",
+      alt: "Digital collage of content coalessing into a vintage computer monitor",
     },
     {
       title: "Send a link to share your archives",
       img: collageImg,
       body: "All data is transferred directly from your computer to their browser.\n\n We don't get access to your archives.",
+      alt: "",
     },
     {
       title: "Web archives of logged-in sites can contain private data!",
       img: collageImg,
       body: "Only share web archives of logged-in sites with people you trust.",
+      alt: "",
     },
   ];
 
@@ -261,7 +264,7 @@ export class OnboardingView extends LitElement {
                   : html`
                       <div class="card-content">
                         <div class="card-content-imgcontainer">
-                          <img src="${slide.img}" alt="" />
+                          <img src="${slide.img}" alt="${slide.alt}" />
                         </div>
                         <div
                           style="display: flex; justify-content: center; align-items: center; flex-direction: column;"
