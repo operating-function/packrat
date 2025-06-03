@@ -24,76 +24,74 @@ export class OnboardingView extends LitElement {
         position: relative;
         display: flex;
         flex-direction: column;
+        overflow: hidden; /* Changed from scroll to hidden */
         width: 100vw;
         height: 100vh;
-        overflow: hidden;
         background: url(${unsafeCSS(forestImg)}) center/cover no-repeat;
       }
 
-      .slides {
-        position: relative;
+      .slides-container {
         flex: 1;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .slides {
         display: flex;
         align-items: center;
-        justify-content: center;
-        overflow: hidden;
+        justify-content: flex-start; /* Changed from center */
+        height: 100%;
+        transition: transform 300ms ease-in-out;
+        padding: 2rem;
+        gap: 2rem;
+        box-sizing: border-box;
+      }
+
+      /* Transform classes for the slides container */
+      .slides.step-0 {
+        transform: translateX(0);
+      }
+
+      .slides.step-1 {
+        transform: translateX(calc(-100vw + 2rem));
+      }
+
+      .slides.step-2 {
+        transform: translateX(calc(-200vw + 4rem));
+      }
+
+      .slides.step-3 {
+        transform: translateX(calc(-300vw + 6rem));
       }
 
       .slide {
-        position: absolute;
-        width: 90%;
-        max-width: 400px;
-        height: 97%;
-        max-height: 650px;
+        width: calc(100vw - 4rem);
+        height: 100%;
         box-sizing: border-box;
         padding: 2rem;
         background: var(--md-sys-color-surface);
-        border-radius: 32px;
+        border-radius: 0.5rem;
         box-shadow: var(--md-sys-elevation-level2);
         display: flex;
         flex-direction: column;
-        transform: translateX(calc(50vw + 250px));
-        transition:
-          transform 300ms ease-in-out,
-          opacity 300ms ease-in-out;
-        opacity: 1; /* Changed from 0 to 1 */
-        margin-top: -50px;
+        flex-shrink: 0; /* Prevent slides from shrinking */
       }
 
-      /* Active slide */
-      .slide[active] {
-        transform: translateX(0);
-        opacity: 1;
+      .slide.hidden {
+        opacity: 0;
       }
 
-      /* Previous slides (to the left) */
-      .slide[prev] {
-        transform: translateX(calc(-50vw - 250px));
-        opacity: 1; /* Keep visible during transition */
-      }
-
-      /* Next slides (to the right) */
-      .slide[next] {
-        transform: translateX(calc(50vw + 250px));
-        opacity: 1; /* Keep visible during transition */
-      }
-
-      /* First slide - full screen, no card */
-      .slide[first] {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        max-width: none;
-        max-height: none;
+      /* First slide - full screen, no card styling */
+      .slide.first {
         background: transparent;
         box-shadow: none;
         border-radius: 0;
         padding: 0;
+        height: 100%;
       }
 
       /* First slide content */
       .first-content {
-        width: 100%;
         height: 100%;
         display: flex;
         flex-direction: column;
@@ -116,13 +114,24 @@ export class OnboardingView extends LitElement {
         align-items: center;
         text-align: center;
         gap: 1rem;
+        max-height: 100%;
+      }
+
+      .card-content-imgcontainer {
+        width: 100%;
+        flex-shrink: 1;
+        flex-grow: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
       }
 
       .card-content img {
         width: 100%;
-        height: auto;
-        object-fit: contain;
-        margin-bottom: 1.5rem;
+        height: 100%;
+        object-fit: contain; /* or 'cover', depending on your goal */
+        display: block;
       }
 
       .card-content md-divider {
@@ -135,8 +144,6 @@ export class OnboardingView extends LitElement {
         display: flex;
         justify-content: center;
         gap: 0.5rem;
-        margin-top: auto;
-        padding-bottom: 1rem;
       }
 
       .dot {
@@ -153,10 +160,6 @@ export class OnboardingView extends LitElement {
 
       /* Bottom navigation panel */
       .bottom-panel {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
         background: var(--md-sys-color-surface);
         box-shadow: var(--md-sys-elevation-level2);
       }
@@ -228,59 +231,66 @@ export class OnboardingView extends LitElement {
 
   render() {
     return html`
-      <div class="slides">
-        ${this.content.map(
-          (slide, i) => html`
-            <div
-              class="slide"
-              ?active=${i === this.step}
-              ?prev=${i < this.step}
-              ?next=${i > this.step}
-              ?first=${i === 0}
-            >
-              ${i === 0
-                ? html`
-                    <div class="first-content">
-                      <span class="logo" role="img" aria-label="Packrat by OPFN logo">${unsafeSVG(packratLogo)}</span>
-                      <md-filled-button @click=${this._next}>
-                        Get Started
-                      </md-filled-button>
-                    </div>
-                  `
-                : html`
-                    <div class="card-content">
-                      <img src="${slide.img}" alt="" />
-                      <div
-                        class="md-typescale-body-medium"
-                        style="--md-sys-typescale-body-medium-weight: 700"
-                      >
-                        ${slide.title}
+      <div class="slides-container">
+        <div class="slides step-${this.step}">
+          ${this.content.map(
+            (slide, i) => html`
+              <div
+                class="slide ${i === 0 ? "first" : ""} ${i !== this.step
+                  ? "hidden"
+                  : ""}"
+              >
+                ${i === 0
+                  ? html`
+                      <div class="first-content">
+                        <span
+                          class="logo"
+                          role="img"
+                          aria-label="Packrat by OPFN logo"
+                          >${unsafeSVG(packratLogo)}</span
+                        >
+                        <md-filled-button @click=${this._next}>
+                          Get Started
+                        </md-filled-button>
                       </div>
-                      <md-divider></md-divider>
-                      <div
-                        class="md-typescale-body-small"
-                        style="color: gray; max-width: 90%; line-height: 1.5;"
-                      >
-                        ${slide.body}
+                    `
+                  : html`
+                      <div class="card-content">
+                        <div class="card-content-imgcontainer">
+                          <img src="${slide.img}" alt="" />
+                        </div>
+                        <div
+                          style="display: flex; justify-content: center; align-items: center; flex-direction: column;"
+                        >
+                          <div class="md-typescale-body-medium">
+                            ${slide.title}
+                          </div>
+                          <md-divider></md-divider>
+                          <div
+                            class="md-typescale-body-small"
+                            style="color: gray; max-width: 90%; line-height: 1.5;"
+                          >
+                            ${slide.body}
+                          </div>
+                        </div>
+                        <div class="dots">
+                          ${this.content
+                            .slice(1)
+                            .map(
+                              (_, j) => html`
+                                <div
+                                  class="dot"
+                                  ?active=${j + 1 === this.step}
+                                ></div>
+                              `,
+                            )}
+                        </div>
                       </div>
-                    </div>
-
-                    <div class="dots">
-                      ${this.content
-                        .slice(1)
-                        .map(
-                          (_, j) => html`
-                            <div
-                              class="dot"
-                              ?active=${j + 1 === this.step}
-                            ></div>
-                          `,
-                        )}
-                    </div>
-                  `}
-            </div>
-          `,
-        )}
+                    `}
+              </div>
+            `,
+          )}
+        </div>
       </div>
 
       <div class="bottom-panel" ?hidden=${this.step === 0}>
