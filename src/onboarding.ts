@@ -264,23 +264,23 @@ export class OnboardingView extends LitElement {
                       </div>
                     `
                   : html`
-                      <div class="card-content">
+                      <main class="card-content">
                         <div class="card-content-imgcontainer">
                           <img src="${slide.img}" alt="${slide.alt}" />
                         </div>
                         <div
                           style="display: flex; justify-content: center; align-items: center; flex-direction: column; margin-bottom: 2rem;"
                         >
-                          <div class="md-typescale-body-medium">
+                          <h1 class="md-typescale-body-medium">
                             ${slide.title}
-                          </div>
+                          </h1>
                           <md-divider></md-divider>
-                          <div
+                          <p
                             class="md-typescale-body-small"
                             style="color: gray; max-width: 90%; line-height: 1.5;"
                           >
                             ${slide.body}
-                          </div>
+                          </p>
                         </div>
                         <div class="dots">
                           ${this.content
@@ -294,7 +294,7 @@ export class OnboardingView extends LitElement {
                               `,
                             )}
                         </div>
-                      </div>
+                      </main>
                     `}
               </div>
             `,
