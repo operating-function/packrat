@@ -5,6 +5,7 @@ import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 import "./argo-archive-list";
 import "./argo-shared-archive-list";
 import "./settings-page";
+import "./onboarding";
 import "@material/web/textfield/outlined-text-field.js";
 import "@material/web/icon/icon.js";
 import { ArgoArchiveList } from "./argo-archive-list";
@@ -187,17 +188,35 @@ class ArgoViewer extends LitElement {
 
   private archiveList!: ArgoArchiveList;
 
+  @state() private showOnboarding = false;
   @state() private showingSettings = false;
+  @state() private isBlocked = false;
   @state() private skipDomains: string[] = [];
 
   private async _toggleSettings() {
     this.showingSettings = !this.showingSettings;
+
+    // when toggling *off* settings, reload skip-list and re-query
     if (!this.showingSettings) {
+      // re-load the list from storage
+      // @ts-expect-error
+      this.skipDomains = await getLocalOption("skipDomains");
+
+      // re-run your normal "update everything" flow
+      this.updateTabInfo();
+
+      // wait for the archive list element to re-render
       await this.updateComplete;
       this.archiveList = this.shadowRoot!.getElementById(
         "archive-list",
       ) as ArgoArchiveList;
     }
+  }
+
+  private async _onboardingDone() {
+    // turn the flag off so onboarding won’t show again
+    await setLocalOption("showOnboarding", "0");
+    this.showOnboarding = false;
   }
   constructor() {
     super();
@@ -545,6 +564,9 @@ class ArgoViewer extends LitElement {
     // @ts-expect-error
     this.skipDomains = await getLocalOption("skipDomains");
 
+    const onb = await getLocalOption("showOnboarding");
+    this.showOnboarding = onb !== "0";
+
     // @ts-expect-error - TS2339 - Property 'canRecord' does not exist on type 'ArgoViewer'.
     this.canRecord =
       // @ts-expect-error - TS2339 - Property 'pageUrl' does not exist on type 'ArgoViewer'.
@@ -755,8 +777,15 @@ class ArgoViewer extends LitElement {
 
     if (
       changedProperties.has("pageUrl") ||
-      changedProperties.has("failureMsg")
+      changedProperties.has("failureMsg") ||
+      changedProperties.has("skipDomains")
     ) {
+      this.isBlocked =
+        // @ts-expect-error - TS2339 - Property 'pageUrl' does not exist on type 'ArgoViewer'.
+        !!this.pageUrl &&
+        // exactly the same check you use for skipDomains
+        // @ts-expect-error - TS2339 - Property 'pageUrl' does not exist on type 'ArgoViewer'.
+        isUrlInSkipList(this.pageUrl, this.skipDomains);
       // @ts-expect-error - TS2339 - Property 'canRecord' does not exist on type 'ArgoViewer'.
       this.canRecord =
         // @ts-expect-error - TS2339 - Property 'pageUrl' does not exist on type 'ArgoViewer'.
@@ -808,10 +837,6 @@ class ArgoViewer extends LitElement {
     this.waitingForStart = false;
     // @ts-expect-error - TS2339 - Property 'waitingForStop' does not exist on type 'ArgoViewer'.
     this.waitingForStop = true;
-  }
-
-  get notRecordingMessage() {
-    return "Archiving Disabled";
   }
 
   renderStatusCard() {
@@ -943,6 +968,20 @@ class ArgoViewer extends LitElement {
       `;
     }
 
+    if (this.isBlocked) {
+      return html`
+        <span class="status-title">Status</span>
+        <div class="status-container">
+          <md-icon filled style="color: var(--md-sys-color-error)"
+            >block</md-icon
+          >
+          <span class="status-content">
+            Archiving blocked by your block-list.
+          </span>
+        </div>
+      `;
+    }
+
     // @ts-expect-error - TS2339 - Property 'canRecord' does not exist on type 'ArgoViewer'.
     if (!this.canRecord) {
       // @ts-expect-error - TS2339 - Property 'pageUrl' does not exist on type 'ArgoViewer'. | TS2339 - Property 'pageUrl' does not exist on type 'ArgoViewer'.
@@ -983,7 +1022,7 @@ class ArgoViewer extends LitElement {
         <md-icon filled style="color: var(--md-sys-color-secondary)"
           >folder_off</md-icon
         >
-        <span class="status-content">${this.notRecordingMessage}</span>
+        <span class="status-content">Archiving Disabled</span>
       </div>
     `;
   }
@@ -1147,6 +1186,12 @@ class ArgoViewer extends LitElement {
   }
 
   render() {
+    if (this.showOnboarding) {
+      return html`<wr-onboarding
+        @completed=${this._onboardingDone}
+      ></wr-onboarding>`;
+    }
+
     if (this.showingSettings) {
       return html`<settings-page
         @back=${this._toggleSettings}
