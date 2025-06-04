@@ -13,7 +13,9 @@ import "@material/web/icon/icon.js";
 // Import assets
 import forestImg from "./assets/images/forest.avif";
 import packratLogo from "./assets/brand/packrat-lockup-white.svg";
-import collageImg from "./assets/images/downloading.avif";
+import downloadingImg from "./assets/images/downloading.avif";
+import sharingImg from "./assets/images/sharing.avif";
+import warningImg from "./assets/images/sharing-warning.avif";
 
 @customElement("wr-onboarding")
 export class OnboardingView extends LitElement {
@@ -204,21 +206,21 @@ export class OnboardingView extends LitElement {
     },
     {
       title: "Packrat downloads websites as you browse",
-      img: collageImg,
+      img: downloadingImg,
       body: "All the pages you view with the extension enabled will be saved locally to your computer.",
       alt: "Digital collage of content coalessing into a vintage computer monitor",
     },
     {
-      title: "Send a link to share your archives",
-      img: collageImg,
-      body: "All data is transferred directly from your computer to their browser.\n\n We don't get access to your archives.",
-      alt: "",
+      title: "Share your archives with others with a link",
+      img: sharingImg,
+      body: "All data is transferred directly from your computer to their browser. Nobody else gets access to your archives.",
+      alt: "Digital collage of two computers with images being transferred between them in a whirlwind of scribbles",
     },
     {
-      title: "Web archives of logged-in sites can contain private data!",
-      img: collageImg,
-      body: "Only share web archives of logged-in sites with people you trust.",
-      alt: "",
+      title: "Web archives can contain private data!",
+      img: warningImg,
+      body: "Web archives of logged-in sites can contain private messages, user data, and account credentials. Only share archives of logged-in sites with people you trust.",
+      alt: "Digital collage of a top secret classified document cover sheet atop maps and an envelope",
     },
   ];
 
@@ -267,7 +269,7 @@ export class OnboardingView extends LitElement {
                           <img src="${slide.img}" alt="${slide.alt}" />
                         </div>
                         <div
-                          style="display: flex; justify-content: center; align-items: center; flex-direction: column;"
+                          style="display: flex; justify-content: center; align-items: center; flex-direction: column; margin-bottom: 2rem;"
                         >
                           <div class="md-typescale-body-medium">
                             ${slide.title}
