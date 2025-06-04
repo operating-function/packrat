@@ -2,8 +2,8 @@
 
 import { getLocalOption, setLocalOption } from "./localstorage";
 
-const MATOMO_URL = "https://argo-chrome-test.matomo.cloud/matomo.php";
-const SITE_ID = "2";
+const MATOMO_URL = "https://analytics.vaporware.network/matomo.php";
+const SITE_ID = "1";
 const USER_ID_KEY = "matomoUserId";
 
 /**
