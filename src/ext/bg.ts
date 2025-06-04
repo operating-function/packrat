@@ -95,6 +95,15 @@ function sidepanelHandler(port) {
           // @ts-expect-error - TS2339 - Property 'port' does not exist on type 'BrowserRecorder'.
           self.recorders[tabId].port = port;
           self.recorders[tabId].doUpdateStatus();
+        } else if (isRecordingEnabled) {
+          // Send the current recording state even if no recorder exists for this tab
+          port.postMessage({
+            type: "status",
+            recording: false, // No recorder for this tab
+            autorun,
+            // @ts-expect-error
+            collId: defaultCollId,
+          });
         }
         port.postMessage(await listAllMsg(collLoader));
         break;
@@ -353,8 +362,18 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
 
     if (changeInfo.url && !isValidUrl(changeInfo.url, skipDomains)) {
       stopRecorder(tabId);
+
+      // Ensure debugger is detached when navigating to a skipped domain
+      try {
+        chrome.debugger.detach({ tabId }, () => {
+          // Debugger detached, ignore any errors as it might already be detached
+        });
+      } catch (e) {
+        // Ignore errors - debugger might already be detached
+      }
+
       delete self.recorders[tabId];
-      // let the side-panel know the ’canRecord’/UI state changed
+      // let the side-panel know the 'canRecord'/UI state changed
       // @ts-expect-error
       if (sidepanelPort) {
         sidepanelPort.postMessage({ type: "update" });
@@ -440,6 +459,9 @@ async function startRecorder(tabId, opts) {
   let err = null;
   // @ts-expect-error - TS7034 - Variable 'sidepanelPort' implicitly has type 'any' in some locations where its type cannot be determined.
   if (sidepanelPort) {
+    // Set the port on the recorder so it can send status updates
+    // @ts-expect-error
+    self.recorders[tabId].port = sidepanelPort;
     sidepanelPort.postMessage({ type: "update" });
   }
   const { waitForTabUpdate } = opts;
@@ -449,9 +471,28 @@ async function startRecorder(tabId, opts) {
     try {
       self.recorders[tabId].setCollId(opts.collId);
       await self.recorders[tabId].attach();
+
+      // Send status update after successful attach
+      // @ts-expect-error
+      if (sidepanelPort && self.recorders[tabId]) {
+        self.recorders[tabId].doUpdateStatus();
+      }
     } catch (e) {
       console.warn(e);
       err = e;
+
+      // Clean up on error
+      // @ts-expect-error
+      if (err?.message?.includes("already attached")) {
+        // Try to detach and delete the recorder
+        try {
+          chrome.debugger.detach({ tabId }, () => {
+            delete self.recorders[tabId];
+          });
+        } catch (detachErr) {
+          console.warn("Failed to detach debugger:", detachErr);
+        }
+      }
     }
     return err;
   }
@@ -462,6 +503,19 @@ async function startRecorder(tabId, opts) {
 function stopRecorder(tabId) {
   if (self.recorders[tabId]) {
     self.recorders[tabId].detach();
+
+    // Ensure the sidepanel is notified about the stop
+    // @ts-expect-error - TS7034 - Variable 'sidepanelPort' implicitly has type 'any' in some locations where its type cannot be determined.
+    if (sidepanelPort) {
+      sidepanelPort.postMessage({
+        type: "status",
+        recording: false,
+        autorun,
+        // @ts-expect-error - defaultCollId implicitly has an 'any' type.
+        collId: defaultCollId,
+      });
+    }
+
     return true;
   }
 

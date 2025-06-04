@@ -71,6 +71,8 @@ export class SettingsPage extends LitElement {
   private archiveScreenshots = false;
   @state()
   private skipDomains = "";
+  @state()
+  private showOnboarding = false;
 
   connectedCallback() {
     super.connectedCallback();
@@ -91,6 +93,8 @@ export class SettingsPage extends LitElement {
         : typeof domains === "string"
           ? domains
           : "";
+      const onb = await getLocalOption("showOnboarding");
+      this.showOnboarding = onb !== "0";
     } catch (e) {
       console.error("Failed to load settings", e);
     }
@@ -131,6 +135,14 @@ export class SettingsPage extends LitElement {
     // @ts-expect-error
     const checked = (e.currentTarget as HTMLInputElement).selected;
     await setLocalOption("archiveScreenshots", checked ? "1" : "0");
+    chrome.runtime.sendMessage({ msg: "optionsChanged" });
+  }
+
+  private async _onShowOnboardingChange(e: Event) {
+    // @ts-expect-error md-switch uses `selected` for its checked state
+    const checked = (e.currentTarget as HTMLInputElement).selected;
+    this.showOnboarding = checked;
+    await setLocalOption("showOnboarding", checked ? "1" : "0");
     chrome.runtime.sendMessage({ msg: "optionsChanged" });
   }
 
@@ -213,6 +225,21 @@ export class SettingsPage extends LitElement {
             <br /><br />
             <strong>Sharing content created with this setting enabled may compromise your
             login credentials.</strong>
+          </p>
+        </div>
+
+        <div class="section">
+          <label class="section-label md-typescale-label-large">
+            Show Onboarding on First Open
+            <md-switch
+              id="showOnboarding"
+              style="transform: scale(0.6);"
+              @change=${this._onShowOnboardingChange}
+              ?selected=${this.showOnboarding}
+            ></md-switch>
+          </label>
+          <p class="section-desc md-typescale-body-small">
+            When enabled, the onboarding carousel will run the next time you open the side panel.
           </p>
         </div>
 

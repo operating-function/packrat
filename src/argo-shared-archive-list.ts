@@ -8,7 +8,6 @@ import "@material/web/icon/icon.js";
 import "@material/web/labs/card/elevated-card.js";
 import "@material/web/button/filled-button.js";
 import "@material/web/button/outlined-button.js";
-// @ts-expect-error
 import filingDrawer from "assets/images/filing-drawer.avif";
 
 import { getLocalOption, setSharedArchives } from "./localstorage";
