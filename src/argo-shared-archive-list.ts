@@ -15,6 +15,7 @@ import { Index as FlexIndex } from "flexsearch";
 import type { SharedArchive } from "./types";
 import { webtorrentClient as client } from "./global-webtorrent";
 
+import { REPLAY_BASE_URL } from "./consts";
 @customElement("argo-shared-archive-list")
 export class ArgoSharedArchiveList extends LitElement {
   static styles: CSSResultGroup = [
@@ -423,19 +424,34 @@ export class ArgoSharedArchiveList extends LitElement {
                       style="padding: 0.5rem 1rem; display: flex; align-items: center; gap: 0.5rem; justify-content: space-between;"
                     >
                       <md-filled-button
-                        @click=${() => this._copyLink(archive.magnetURI)}
+                        @click=${() =>
+                          this._copyLink(
+                            `${REPLAY_BASE_URL}/?source=${encodeURIComponent(
+                              archive.magnetURI,
+                            )}`,
+                          )}
                       >
                         <md-icon slot="icon" style="color:white"
                           >content_copy</md-icon
                         >
                         Copy Link
                       </md-filled-button>
-                      <md-icon-button
-                        @click=${() => this._unseed(archive.id)}
-                        aria-label="Unshare"
-                      >
-                        <md-icon>share_off</md-icon>
-                      </md-icon-button>
+                      <div style="display: flex; gap: 0.25rem;">
+                        <md-icon-button
+                          @click=${() => this._copyLink(archive.magnetURI)}
+                          aria-label="P2P"
+                          title="Copy magnet link"
+                        >
+                          <md-icon>p2p</md-icon>
+                        </md-icon-button>
+                        <md-icon-button
+                          @click=${() => this._unseed(archive.id)}
+                          aria-label="Unshare"
+                          title="Unshare"
+                        >
+                          <md-icon>share_off</md-icon>
+                        </md-icon-button>
+                      </div>
                     </div>
                   </details>
                 </md-elevated-card>

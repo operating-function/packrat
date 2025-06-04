@@ -15,6 +15,7 @@ import { getSharedArchives, setSharedArchives } from "./localstorage";
 import { webtorrentClient as client } from "./global-webtorrent";
 import { state } from "lit/decorators.js";
 import { isUrlInSkipList } from "./utils";
+import { REPLAY_BASE_URL } from "./consts";
 
 import {
   getLocalOption,
@@ -512,15 +513,20 @@ class ArgoViewer extends LitElement {
         const magnetURI = torrent.magnetURI;
         console.log("Seeding WACZ file via WebTorrent:", magnetURI);
 
+        const replayLink = `${REPLAY_BASE_URL}/?source=${encodeURIComponent(
+          magnetURI,
+        )}`;
         // Copy to clipboard
         navigator.clipboard
-          .writeText(magnetURI)
+          .writeText(replayLink)
           .then(() => {
-            alert(`Magnet link copied to clipboard:\n${magnetURI}`);
+            alert(
+              `ReplayWeb.page copied to clipboard (just paste it in the address bar):\n${replayLink}`,
+            );
           })
           .catch((err) => {
             console.error("Failed to copy magnet link:", err);
-            alert(`Magnet Link Ready:\n${magnetURI}`);
+            alert(`ReplayWeb.page Ready:\n${replayLink}`);
           });
 
         const existing = await getSharedArchives();
@@ -1108,14 +1114,21 @@ class ArgoViewer extends LitElement {
             </div>
 
             <div style="display:flex; align-items:center;">
-              <md-icon-button aria-label="Download" @click=${this.onDownload}
+              <md-icon-button
+                aria-label="Export selected"
+                title="Export selected"
+                @click=${this.onDownload}
                 ><md-icon>download</md-icon></md-icon-button
               >
-              <md-icon-button aria-label="Share" @click=${this.onShareSelected}
+              <md-icon-button
+                aria-label="Share selected"
+                title="Share selected"
+                @click=${this.onShareSelected}
                 ><md-icon>share</md-icon></md-icon-button
               >
               <md-icon-button
-                aria-label="Delete"
+                aria-label="Delete selected"
+                title="Delete selected"
                 @click=${this.onDeleteSelected}
                 ><md-icon>delete</md-icon></md-icon-button
               >
@@ -1224,7 +1237,11 @@ class ArgoViewer extends LitElement {
                 `
           }
 
-          <md-icon-button aria-label="Settings" @click=${this._toggleSettings}>
+          <md-icon-button
+            aria-label="Settings"
+            title="Settings"
+            @click=${this._toggleSettings}
+          >
             <md-icon>settings</md-icon>
           </md-icon-button>
         </div>
