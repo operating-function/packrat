@@ -440,12 +440,14 @@ export class ArgoSharedArchiveList extends LitElement {
                         <md-icon-button
                           @click=${() => this._copyLink(archive.magnetURI)}
                           aria-label="P2P"
+                          title="Copy magnet link"
                         >
                           <md-icon>p2p</md-icon>
                         </md-icon-button>
                         <md-icon-button
                           @click=${() => this._unseed(archive.id)}
                           aria-label="Unshare"
+                          title="Unshare"
                         >
                           <md-icon>share_off</md-icon>
                         </md-icon-button>
