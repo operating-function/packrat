@@ -35,6 +35,7 @@ import "@material/web/button/outlined-button.js";
 import "@material/web/divider/divider.js";
 import { mapIntegerToRange, truncateString } from "./utils";
 import { CollectionLoader } from "@webrecorder/wabac/swlib";
+import { onTorrentCreated } from "./events";
 
 document.adoptedStyleSheets.push(typescaleStyles.styleSheet!);
 
@@ -552,6 +553,8 @@ class ArgoViewer extends LitElement {
         console.log("Currently seeding torrents:", client.torrents);
       },
     );
+
+    await onTorrentCreated(pages.length);
   }
 
   async firstUpdated() {

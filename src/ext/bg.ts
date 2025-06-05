@@ -10,6 +10,12 @@ import {
   getSharedArchives,
 } from "../localstorage";
 import { isValidUrl } from "../utils";
+
+import {
+  trackArchiveSize,
+  onArchivingStarted,
+  onArchivingStopped,
+} from "../events";
 // ===========================================================================
 self.recorders = {};
 self.newRecId = null;
@@ -24,6 +30,7 @@ let defaultCollId = null;
 let autorun = false;
 let isRecordingEnabled = false;
 let skipDomains = [] as string[];
+let lastTrackedTotalSize = 0;
 
 const openWinMap = new Map();
 
@@ -38,6 +45,31 @@ let sidepanelPort = null;
   // @ts-expect-error
   skipDomains = (await getLocalOption("skipDomains")) || [];
 })();
+
+async function checkAndTrackArchiveSize() {
+  try {
+    const collId = await getLocalOption("defaultCollId");
+    if (!collId) return;
+
+    const coll = await collLoader.loadColl(collId);
+    if (!coll?.store?.getAllPages) return;
+
+    const pages = await coll.store.getAllPages();
+    // @ts-expect-error any
+    const totalSize = pages.reduce((sum, page) => sum + (page.size || 0), 0);
+
+    const sizeDiff = totalSize - lastTrackedTotalSize;
+    if (
+      sizeDiff > 10 * 1024 * 1024 ||
+      (totalSize > 0 && lastTrackedTotalSize === 0)
+    ) {
+      await trackArchiveSize(totalSize);
+      lastTrackedTotalSize = totalSize;
+    }
+  } catch (error) {
+    console.error("Error tracking archive size:", error);
+  }
+}
 
 // ===========================================================================
 
@@ -119,6 +151,7 @@ function sidepanelHandler(port) {
         if (coll?.store?.getAllPages) {
           const pages = await coll.store.getAllPages();
           port.postMessage({ type: "pages", pages });
+          await checkAndTrackArchiveSize();
         } else {
           port.postMessage({ type: "pages", pages: [] });
         }
@@ -136,6 +169,7 @@ function sidepanelHandler(port) {
           await coll.store.deletePage(id);
         }
 
+        await checkAndTrackArchiveSize();
         // now re-send the new list of pages
         const pages = await coll.store.getAllPages();
         port.postMessage({ type: "pages", pages });
@@ -165,6 +199,10 @@ function sidepanelHandler(port) {
                 //@ts-expect-error - 2 parameters but 3
                 tab.url,
               );
+
+              if (tab.url) {
+                await onArchivingStarted(tab.url);
+              }
             }
 
             port.postMessage({
@@ -187,6 +225,9 @@ function sidepanelHandler(port) {
           const tabId = parseInt(tabIdStr);
           stopRecorder(tabId);
         }
+
+        await checkAndTrackArchiveSize();
+        await onArchivingStopped("manual");
 
         port.postMessage({
           type: "status",
@@ -232,6 +273,21 @@ chrome.runtime.onMessage.addListener(
   // @ts-expect-error - TS7006 - Parameter 'message' implicitly has an 'any' type.
   (message /*sender, sendResponse*/) => {
     console.log("onMessage", message);
+
+    if (message.type === "matomoTrack" && message.url) {
+      fetch(message.url, {
+        method: "GET",
+        mode: "no-cors",
+      })
+        .then(() => {
+          console.log("Matomo tracking sent from background:", message.url);
+        })
+        .catch((error) => {
+          console.error("Matomo tracking error in background:", error);
+        });
+      return true;
+    }
+
     switch (message.msg) {
       case "optionsChanged":
         for (const rec of Object.values(self.recorders)) {
@@ -252,6 +308,11 @@ chrome.runtime.onMessage.addListener(
 
       case "disableCSP":
         disableCSPForTab(message.tabId);
+        break;
+
+      case "checkArchiveSize":
+        // Check and track archive size when requested
+        checkAndTrackArchiveSize();
         break;
     }
     return true;
@@ -584,6 +645,19 @@ async function disableCSPForTab(tabId) {
 
 // ===========================================================================
 chrome.runtime.onInstalled.addListener(main);
+
+chrome.runtime.onStartup.addListener(async () => {
+  await checkAndTrackArchiveSize();
+});
+
+setInterval(
+  async () => {
+    if (Object.keys(self.recorders).length > 0) {
+      await checkAndTrackArchiveSize();
+    }
+  },
+  5 * 60 * 1000,
+);
 
 if (self.importScripts) {
   self.importScripts("sw.js");

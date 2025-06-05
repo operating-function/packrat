@@ -8,6 +8,7 @@ import "@material/web/iconbutton/icon-button.js";
 import { styles as typescaleStyles } from "@material/web/typography/md-typescale-styles.js";
 import { getLocalOption, setLocalOption } from "./localstorage";
 import { state } from "lit/decorators.js";
+import { onSettingsChanged } from "./events";
 
 @customElement("settings-page")
 export class SettingsPage extends LitElement {
@@ -70,6 +71,8 @@ export class SettingsPage extends LitElement {
   @state()
   private archiveScreenshots = false;
   @state()
+  private analyticsEnabled = false;
+  @state()
   private skipDomains = "";
   @state()
   private showOnboarding = false;
@@ -87,7 +90,10 @@ export class SettingsPage extends LitElement {
       this.archiveStorage = storage === "1";
       const screenshots = await getLocalOption("archiveScreenshots");
       this.archiveScreenshots = screenshots === "1";
+      const analytics = await getLocalOption("analyticsEnabled");
+      this.analyticsEnabled = analytics === "1";
       const domains = await getLocalOption("skipDomains");
+
       this.skipDomains = Array.isArray(domains)
         ? domains.join("\n")
         : typeof domains === "string"
@@ -114,6 +120,8 @@ export class SettingsPage extends LitElement {
     // persist and notify recorder
     await setLocalOption("skipDomains", list);
     chrome.runtime.sendMessage({ msg: "optionsChanged" });
+
+    await onSettingsChanged("SkippedDomains", list.length);
   }
 
   private async _onArchiveCookiesChange(e: Event) {
@@ -122,6 +130,7 @@ export class SettingsPage extends LitElement {
 
     await setLocalOption("archiveCookies", checked ? "1" : "0");
     chrome.runtime.sendMessage({ msg: "optionsChanged" });
+    await onSettingsChanged("CookiesEnabled", checked);
   }
 
   private async _onArchiveLocalstorageChange(e: Event) {
@@ -129,6 +138,7 @@ export class SettingsPage extends LitElement {
     const checked = (e.currentTarget as HTMLInputElement).selected;
     await setLocalOption("archiveStorage", checked ? "1" : "0");
     chrome.runtime.sendMessage({ msg: "optionsChanged" });
+    await onSettingsChanged("LocalstorageEnabled", checked);
   }
 
   private async _onArchiveScreenshotsChange(e: Event) {
@@ -136,6 +146,15 @@ export class SettingsPage extends LitElement {
     const checked = (e.currentTarget as HTMLInputElement).selected;
     await setLocalOption("archiveScreenshots", checked ? "1" : "0");
     chrome.runtime.sendMessage({ msg: "optionsChanged" });
+    await onSettingsChanged("ScreenshotsEnabled", checked);
+  }
+
+  private async _onAnalyticsChange(e: Event) {
+    // @ts-expect-error
+    const checked = (e.currentTarget as HTMLInputElement).selected;
+    await setLocalOption("analyticsEnabled", checked ? "1" : "0");
+    chrome.runtime.sendMessage({ msg: "optionsChanged" });
+    await onSettingsChanged("AnalyticsEnabled", checked);
   }
 
   private async _onShowOnboardingChange(e: Event) {
@@ -208,6 +227,22 @@ export class SettingsPage extends LitElement {
             caution about sharing archived pages.
           </p>
         </div>
+
+        <div class="section">
+        <label class="section-label md-typescale-label-large">
+          Enable Analytics
+          <md-switch
+            id="enableAnalytics"
+            style="transform: scale(0.6);"
+            @change=${this._onAnalyticsChange}
+            ?selected=${this.analyticsEnabled}
+          ></md-switch>
+        </label>
+        <p class="section-desc md-typescale-body-small">
+          Allow anonymous usage tracking (e.g., page archives, settings changes). When enabled, basic events will be logged. You can disable this at any time to opt-out of data collection.
+        </p>
+      </div>
+
 
         <div class="section">
             <label class="md-typescale-label-large section-label">

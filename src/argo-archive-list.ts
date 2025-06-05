@@ -11,6 +11,7 @@ import filingDrawer from "assets/images/filing-drawer.avif";
 
 import { getLocalOption } from "./localstorage";
 import { Index as FlexIndex } from "flexsearch";
+import { onPageClicked } from "./events";
 
 @customElement("argo-archive-list")
 export class ArgoArchiveList extends LitElement {
@@ -433,6 +434,7 @@ export class ArgoArchiveList extends LitElement {
   }
 
   private async _openPage(page: { ts: string; url: string }) {
+    onPageClicked(page.url);
     const tsParam = new Date(Number(page.ts))
       .toISOString()
       .replace(/[-:TZ.]/g, "");
