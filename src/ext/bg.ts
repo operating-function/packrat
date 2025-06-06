@@ -76,16 +76,16 @@ async function checkAndTrackArchiveSize() {
 function main() {
   chrome.action.setBadgeBackgroundColor({ color: "#4d7c0f" });
 
-  chrome.contextMenus.create({
-    id: "toggle-rec",
-    title: "Start Recording",
-    contexts: ["browser_action"],
-  });
-  chrome.contextMenus.create({
-    id: "view-rec",
-    title: "View Web Archives",
-    contexts: ["all"],
-  });
+  // chrome.contextMenus.create({
+  //   id: "toggle-rec",
+  //   title: "Start Recording",
+  //   contexts: ["browser_action"],
+  // });
+  // chrome.contextMenus.create({
+  //   id: "view-rec",
+  //   title: "View Web Archives",
+  //   contexts: ["all"],
+  // });
 }
 // Side panel
 chrome.sidePanel
@@ -487,24 +487,24 @@ chrome.tabs.onRemoved.addListener((tabId) => {
 
 // ===========================================================================
 // @ts-expect-error - TS7006 - Parameter 'info' implicitly has an 'any' type. | TS7006 - Parameter 'tab' implicitly has an 'any' type.
-chrome.contextMenus.onClicked.addListener((info, tab) => {
-  switch (info.menuItemId) {
-    case "view-rec":
-      chrome.tabs.create({ url: chrome.runtime.getURL("index.html") });
-      break;
+// chrome.contextMenus.onClicked.addListener((info, tab) => {
+//   switch (info.menuItemId) {
+//     case "view-rec":
+//       chrome.tabs.create({ url: chrome.runtime.getURL("index.html") });
+//       break;
 
-    case "toggle-rec":
-      if (!isRecording(tab.id)) {
-        if (isValidUrl(tab.url, skipDomains)) {
-          // @ts-expect-error - TS2554 - Expected 2 arguments, but got 1.
-          startRecorder(tab.id);
-        }
-      } else {
-        stopRecorder(tab.id);
-      }
-      break;
-  }
-});
+//     case "toggle-rec":
+//       if (!isRecording(tab.id)) {
+//         if (isValidUrl(tab.url, skipDomains)) {
+//           // @ts-expect-error - TS2554 - Expected 2 arguments, but got 1.
+//           startRecorder(tab.id);
+//         }
+//       } else {
+//         stopRecorder(tab.id);
+//       }
+//       break;
+//   }
+// });
 
 // ===========================================================================
 // @ts-expect-error - TS7006 - Parameter 'tabId' implicitly has an 'any' type. | TS7006 - Parameter 'opts' implicitly has an 'any' type.

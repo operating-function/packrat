@@ -4,7 +4,6 @@
   "version": "$VERSION",
   "permissions": [
     "debugger",
-    "contextMenus",
     "tabs",
     "activeTab",
     "storage",
