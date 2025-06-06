@@ -1,12 +1,12 @@
 {
   "name": "@opfn/packrat",
   "productName": "Packrat",
-  "version": "0.15.0",
+  "version": "0.1.0",
   "main": "index.js",
   "description": "Create an archive of every page you browse",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/webrecorder/archiveweb.page.git"
+    "url": "git+https://github.com/operating-function/packrat.git"
   },
   "author": "OPFN",
   "license": "AGPL-3.0-or-later",
@@ -95,9 +95,9 @@
   },
   "build": {
     "afterSign": "build/notarize.js",
-    "productName": "ArchiveWeb.page",
+    "productName": "Packrat",
     "asar": true,
-    "appId": "net.webrecorder.archivewebpage",
+    "appId": "net.opfn.packrat",
     "artifactName": "${productName}-${version}.${ext}",
     "extraMetadata": {
       "main": "dist/electron/electron.js"
@@ -109,7 +109,7 @@
       "dist/electron/prebuilds/${platform}-${arch}/*"
     ],
     "dmg": {
-      "title": "ArchiveWeb.page"
+      "title": "Packrat"
     },
     "mac": {
       "category": "public.app-category.utilities",
