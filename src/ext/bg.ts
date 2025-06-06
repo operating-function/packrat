@@ -486,7 +486,7 @@ chrome.tabs.onRemoved.addListener((tabId) => {
 });
 
 // ===========================================================================
-// @ts-expect-error - TS7006 - Parameter 'info' implicitly has an 'any' type. | TS7006 - Parameter 'tab' implicitly has an 'any' type.
+// // @ts-expect-error - TS7006 - Parameter 'info' implicitly has an 'any' type. | TS7006 - Parameter 'tab' implicitly has an 'any' type.
 // chrome.contextMenus.onClicked.addListener((info, tab) => {
 //   switch (info.menuItemId) {
 //     case "view-rec":
