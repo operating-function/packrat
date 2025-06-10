@@ -71,7 +71,7 @@ export class SettingsPage extends LitElement {
   @state()
   private archiveScreenshots = false;
   @state()
-  private analyticsEnabled = false;
+  private analyticsEnabled = true;
   @state()
   private skipDomains = "";
   @state()
@@ -90,8 +90,16 @@ export class SettingsPage extends LitElement {
       this.archiveStorage = storage === "1";
       const screenshots = await getLocalOption("archiveScreenshots");
       this.archiveScreenshots = screenshots === "1";
+
       const analytics = await getLocalOption("analyticsEnabled");
-      this.analyticsEnabled = analytics === "1";
+      if (analytics === null || analytics === undefined) {
+        // Set default analytics to enabled
+        await setLocalOption("analyticsEnabled", "1");
+        this.analyticsEnabled = true;
+      } else {
+        this.analyticsEnabled = analytics === "1";
+      }
+
       const domains = await getLocalOption("skipDomains");
 
       this.skipDomains = Array.isArray(domains)
