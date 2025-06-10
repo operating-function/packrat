@@ -247,7 +247,7 @@ export class SettingsPage extends LitElement {
           ></md-switch>
         </label>
         <p class="section-desc md-typescale-body-small">
-          Allow anonymous usage tracking (e.g., page archives, settings changes). When enabled, basic events will be logged. You can disable this at any time to opt-out of data collection.
+          Allow anonymous usage tracking. When enabled, basic information about app usage will be logged. You can disable this at any time to opt-out of data collection. Please see our website for a <a style="color: var(--md-sys-color-primary-container);" href="https://opfn.co/packrat#privacy-policy" target="_blank">complete list of the events we log</a>!
         </p>
       </div>
 
