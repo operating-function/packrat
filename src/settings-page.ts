@@ -71,7 +71,7 @@ export class SettingsPage extends LitElement {
   @state()
   private archiveScreenshots = false;
   @state()
-  private analyticsEnabled = false;
+  private analyticsEnabled = true;
   @state()
   private skipDomains = "";
   @state()
@@ -90,8 +90,16 @@ export class SettingsPage extends LitElement {
       this.archiveStorage = storage === "1";
       const screenshots = await getLocalOption("archiveScreenshots");
       this.archiveScreenshots = screenshots === "1";
+
       const analytics = await getLocalOption("analyticsEnabled");
-      this.analyticsEnabled = analytics === "1";
+      if (analytics === null || analytics === undefined) {
+        // Set default analytics to enabled
+        await setLocalOption("analyticsEnabled", "1");
+        this.analyticsEnabled = true;
+      } else {
+        this.analyticsEnabled = analytics === "1";
+      }
+
       const domains = await getLocalOption("skipDomains");
 
       this.skipDomains = Array.isArray(domains)
@@ -239,7 +247,7 @@ export class SettingsPage extends LitElement {
           ></md-switch>
         </label>
         <p class="section-desc md-typescale-body-small">
-          Allow anonymous usage tracking (e.g., page archives, settings changes). When enabled, basic events will be logged. You can disable this at any time to opt-out of data collection.
+          Allow anonymous usage tracking. When enabled, basic information about app usage will be logged. You can disable this at any time to opt-out of data collection. Please see our website for a <a style="color: var(--md-sys-color-primary-container);" href="https://opfn.co/packrat#privacy-policy" target="_blank">complete list of the events we log</a>!
         </p>
       </div>
 
